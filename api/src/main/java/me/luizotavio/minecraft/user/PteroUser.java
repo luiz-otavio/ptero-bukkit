@@ -4,6 +4,7 @@ import me.luizotavio.minecraft.server.PteroServer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Luiz O. F. Corrêa
@@ -23,10 +24,10 @@ public interface PteroUser {
     @NotNull
     List<PteroServer> getServers();
 
-    void setName(@NotNull String name);
+    CompletableFuture<Void> setName(@NotNull String name);
 
-    void setEmail(@NotNull String email);
+    CompletableFuture<Void> setEmail(@NotNull String email);
 
-    void setPassword(@NotNull String password);
+    CompletableFuture<Void> setPassword(@NotNull String password);
 
 }
