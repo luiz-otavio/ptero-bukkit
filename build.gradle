@@ -1,0 +1,65 @@
+plugins {
+    id 'java'
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    repositories {
+        mavenCentral()
+    }
+
+    group project_groupId
+    version project_version
+
+    // Load local.properties
+    def localProperties = new Properties()
+    localProperties.load(new FileInputStream(rootProject.file('local.properties')))
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+
+        maven {
+            name = "Github"
+            url = 'https://maven.pkg.github.com/luiz-otavio/ptero-mc-interface'
+
+            credentials {
+                username localProperties.get('github.username')
+                password localProperties.get('github.token')
+            }
+        }
+    }
+
+    dependencies {
+        implementation 'org.jetbrains:annotations:23.0.0'
+
+        compileOnly 'org.projectlombok:lombok:1.18.24'
+        annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+        testCompileOnly 'org.projectlombok:lombok:1.18.24'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    // Use java 17 due to newest version of Minecraft
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    jar {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+        from {
+            configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+    }
+}

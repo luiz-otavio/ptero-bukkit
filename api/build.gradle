@@ -1,0 +1,19 @@
+plugins {
+    id 'maven-publish'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
+
+        def repository = project.repositories.findByName("Github")
+
+        repositories {
+            add(repository)
+        }
+    }
+}
