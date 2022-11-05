@@ -22,16 +22,40 @@ import java.net.URL;
  **/
 public interface PteroManager {
 
+    /**
+     * Retrieve the user's repository.
+     * @return The user's repository.
+     */
     @NotNull UserRepository getUserRepository();
 
+    /**
+     * Retrieve the factory of the API.
+     * @return The factory of the API.
+     */
     @NotNull PteroFactory getFactory();
 
+    /**
+     * Retrieve the server's repository.
+     * @return The server's repository.
+     */
     @NotNull ServerRepository getServerRepository();
 
+    /**
+     * Retrieve the application key.
+     * @return The application key.
+     */
     @NotNull String getApplicationKey();
 
+    /**
+     * Retrieve the client key.
+     * @return The client key.
+     */
     @NotNull String getClientKey();
 
+    /**
+     * Retrieve the URL of the API.
+     * @return The URL of the API.
+     */
     @NotNull URL getURL();
 
 }
