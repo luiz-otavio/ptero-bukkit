@@ -36,7 +36,7 @@ public class ServerRepositoryImpl implements ServerRepository {
             .takeWhileAsync(1, server -> server.getUUID().equals(uuid))
             .thenApply(collection -> {
                 if (collection.isEmpty()) {
-                    throw new RuntimeException(new ServerDoesntExistException(uuid.toString()));
+                    throw new ServerDoesntExistException(uuid.toString());
                 }
 
                 ApplicationServer any = collection.stream()
@@ -93,7 +93,7 @@ public class ServerRepositoryImpl implements ServerRepository {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new ServerDoesntExistException(snowflake));
+                throw new ServerDoesntExistException(snowflake);
             });
 
             return catching.unwrap();
@@ -119,7 +119,7 @@ public class ServerRepositoryImpl implements ServerRepository {
             .takeWhileAsync(1, applicationServer -> applicationServer.getUUID().equals(server.getUUID()))
             .thenApply(collection -> {
                 if (collection.isEmpty()) {
-                    throw new RuntimeException(new ServerDoesntExistException(server.getUUID().toString()));
+                    throw new ServerDoesntExistException(server.getUUID().toString());
                 }
 
                 ApplicationServer any = collection.stream()
