@@ -1,6 +1,8 @@
 package me.luizotavio.minecraft.server.status;
 
 /**
+ * Status of the server.
+ *
  * @author Luiz O. F. Corrêa
  * @since 31/10/2022
  **/
