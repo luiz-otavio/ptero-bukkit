@@ -28,8 +28,9 @@ public class Servers {
         } else {
             address = allocation.getFullAddress();
 
-            node = allocation.getNode()
-                .orElseThrow(() -> new RuntimeException(new ServerDoesntExistException(applicationServer.getName())))
+            node = applicationServer.retrieveNode()
+                .timeout(5, TimeUnit.SECONDS)
+                .execute()
                 .getName();
         }
 
