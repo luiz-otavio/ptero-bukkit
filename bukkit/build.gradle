@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    implementation project(':binder')
+    compileOnly project(':binder')
     implementation project(':api')
 
     paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.19.2-R0.1-SNAPSHOT")
