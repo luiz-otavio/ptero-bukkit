@@ -2,7 +2,10 @@ package me.luizotavio.minecraft.factory;
 
 import com.mattmalec.pterodactyl4j.DataType;
 import com.mattmalec.pterodactyl4j.EnvironmentValue;
+import com.mattmalec.pterodactyl4j.Permission;
 import com.mattmalec.pterodactyl4j.application.entities.*;
+import com.mattmalec.pterodactyl4j.client.entities.Account;
+import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
 import com.mattmalec.pterodactyl4j.entities.Allocation;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
 import me.luizotavio.minecraft.comparator.NodeComparator;
@@ -30,12 +33,27 @@ import java.util.concurrent.TimeUnit;
  **/
 public class PteroFactoryImpl implements PteroFactory {
 
+    public static final Permission[] USER_PERMISSIONS = {
+        Permission.FILE_READ, Permission.FILE_CREATE, Permission.FILE_ARCHIVE, Permission.FILE_READ_CONTENT, Permission.FILE_UPDATE,
+        Permission.CONTROL_CONSOLE, Permission.CONTROL_RESTART, Permission.CONTROL_START, Permission.CONTROL_STOP,
+        Permission.USER_CREATE, Permission.USER_READ, Permission.USER_DELETE, Permission.USER_UPDATE
+    };
+
     public static final NodeComparator NODE_COMPARATOR = new NodeComparator();
 
     private final PteroBridgeVO bridge;
+    private final ApplicationUser account;
 
     public PteroFactoryImpl(@NotNull PteroBridgeVO bridge) {
         this.bridge = bridge;
+
+        Account clientAccount = bridge.getClient()
+            .retrieveAccount()
+            .execute();
+
+        this.account = bridge.getApplication()
+            .retrieveUserById(clientAccount.getId())
+            .execute();
     }
 
     @Override
@@ -93,6 +111,7 @@ public class PteroFactoryImpl implements PteroFactory {
 
                     throw new InsufficientResourcesException();
                 }).join();
+
             Location location = targetNode.retrieveLocation()
                 .execute();
 
@@ -109,25 +128,10 @@ public class PteroFactoryImpl implements PteroFactory {
                 .findAny()
                 .orElseThrow(() -> new EggDoesntExistException(egg));
 
-            Try<Optional<ApplicationUser>> catching = Try.catching(() -> {
-                return bridge.getApplication()
-                    .retrieveUsersByEmail(owner.getEmail(), true)
-                    .execute()
-                    .stream()
-                    .findAny();
-            });
-
-            catching.catching(NotFoundException.class, unused -> {
-                throw new UserDoesntExistException(owner.getEmail());
-            });
-
-            ApplicationUser applicationUser = catching.unwrap()
-                .orElseThrow(() -> new UserDoesntExistException(owner.getEmail()));
-
             ApplicationServer applicationServer = bridge.getApplication()
                 .createServer()
                 .setName(name)
-                .setOwner(applicationUser)
+                .setOwner(account)
                 .setDescription("Dedicated server for " + owner.getName())
                 .setEgg(targetEgg)
                 .setLocation(location)
@@ -142,6 +146,22 @@ public class PteroFactoryImpl implements PteroFactory {
                 .startOnCompletion(false)
                 .setDisk(disk, DataType.MB)
                 .execute();
+
+            // Let's wait for the server to be created
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ignored) {
+            }
+
+            ClientServer clientServer = bridge.getClient()
+                .retrieveServerByIdentifier(applicationServer.getIdentifier())
+                .execute();
+
+            clientServer.getSubuserManager()
+                .createUser()
+                .setEmail(owner.getEmail())
+                .setPermissions(USER_PERMISSIONS)
+                .execute(true);
 
             Allocation allocation = applicationServer.retrieveDefaultAllocation()
                 .execute();
