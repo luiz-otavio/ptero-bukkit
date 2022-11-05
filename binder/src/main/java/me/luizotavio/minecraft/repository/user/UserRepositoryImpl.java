@@ -40,11 +40,11 @@ public class UserRepositoryImpl implements UserRepository {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new UserDoesntExistException(username));
+                throw new UserDoesntExistException(username);
             });
 
             return catching.unwrap()
-                .orElseThrow(() -> new RuntimeException(new UserDoesntExistException(username)));
+                .orElseThrow(() -> new UserDoesntExistException(username));
         }, bridge.getWorker()).thenApply(user -> {
             return new PteroUserImpl(
                 bridge,
@@ -68,12 +68,12 @@ public class UserRepositoryImpl implements UserRepository {
             .takeWhileAsync(1, user -> user.getFirstName().equals(fromShort))
             .thenApply(users -> {
                 if (users.isEmpty()) {
-                    throw new RuntimeException(new UserDoesntExistException(uuid.toString()));
+                    throw new UserDoesntExistException(uuid.toString());
                 }
 
                 return users.stream()
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException(new UserDoesntExistException(uuid.toString())));
+                    .orElseThrow(() -> new UserDoesntExistException(uuid.toString()));
             }).thenApply(user -> {
                 return new PteroUserImpl(
                     bridge,
@@ -99,11 +99,11 @@ public class UserRepositoryImpl implements UserRepository {
             });
 
             applicationUser.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new UserDoesntExistException(email));
+                throw new UserDoesntExistException(email);
             });
 
             return applicationUser.unwrap()
-                .orElseThrow(() -> new RuntimeException(new UserDoesntExistException(email)));
+                .orElseThrow(() -> new UserDoesntExistException(email));
         }, bridge.getWorker()).thenApply(user -> {
             return new PteroUserImpl(
                 bridge,
@@ -127,7 +127,7 @@ public class UserRepositoryImpl implements UserRepository {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new UserDoesntExistException(snowflake));
+                throw new UserDoesntExistException(snowflake);
             });
 
             return catching.unwrap();
@@ -156,11 +156,11 @@ public class UserRepositoryImpl implements UserRepository {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new UserDoesntExistException(user.getName()));
+                throw new UserDoesntExistException(user.getName());
             });
 
             ApplicationUser applicationUser = catching.unwrap()
-                .orElseThrow(() -> new RuntimeException(new UserDoesntExistException(user.getName())));
+                .orElseThrow(() -> new UserDoesntExistException(user.getName()));
 
             bridge.getApplication()
                 .getUserManager()

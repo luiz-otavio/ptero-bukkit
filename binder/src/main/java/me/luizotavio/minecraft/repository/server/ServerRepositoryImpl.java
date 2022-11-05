@@ -62,7 +62,7 @@ public class ServerRepositoryImpl implements ServerRepository {
             return bridge.getApplication()
                 .retrieveServersByName(name, true)
                 .execute();
-        }).thenApply(collection -> {
+        }, bridge.getWorker()).thenApply(collection -> {
             if (collection.isEmpty()) {
                 throw new ServerDoesntExistException(name);
             }

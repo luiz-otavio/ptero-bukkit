@@ -74,7 +74,7 @@ public class PteroServerImpl implements PteroServer {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new ServerDoesntExistException(identifier));
+                throw new ServerDoesntExistException(identifier);
             });
 
             return catching.unwrap();
@@ -105,7 +105,7 @@ public class PteroServerImpl implements PteroServer {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new ServerDoesntExistException(identifier));
+                throw new ServerDoesntExistException(identifier);
             });
 
             return catching.unwrap();
@@ -132,7 +132,7 @@ public class PteroServerImpl implements PteroServer {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new ServerDoesntExistException(identifier));
+                throw new ServerDoesntExistException(identifier);
             });
 
             catching.unwrap()
@@ -152,7 +152,7 @@ public class PteroServerImpl implements PteroServer {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new ServerDoesntExistException(identifier));
+                throw new ServerDoesntExistException(identifier);
             });
 
             catching.unwrap()

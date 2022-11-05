@@ -1,10 +1,8 @@
 package me.luizotavio.minecraft.user;
 
-import com.mattmalec.pterodactyl4j.application.entities.ApplicationAllocation;
 import com.mattmalec.pterodactyl4j.application.entities.ApplicationServer;
 import com.mattmalec.pterodactyl4j.application.entities.ApplicationUser;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
-import me.luizotavio.minecraft.exception.ServerDoesntExistException;
 import me.luizotavio.minecraft.exception.UserDoesntExistException;
 import me.luizotavio.minecraft.server.PteroServer;
 import me.luizotavio.minecraft.server.PteroServerImpl;
@@ -88,11 +86,11 @@ public class PteroUserImpl implements PteroUser {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new UserDoesntExistException(name));
+                throw new UserDoesntExistException(name);
             });
 
             return catching.unwrap()
-                .orElseThrow(() -> new RuntimeException(new UserDoesntExistException(name)));
+                .orElseThrow(() -> new UserDoesntExistException(name));
         }, bridge.getWorker()).thenApply(user -> {
             List<ApplicationServer> servers = user.retrieveServers()
                 .timeout(5, TimeUnit.SECONDS)
@@ -134,11 +132,11 @@ public class PteroUserImpl implements PteroUser {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new UserDoesntExistException(this.name));
+                throw new UserDoesntExistException(this.name);
             });
 
             catching.unwrap()
-                .orElseThrow(() -> new RuntimeException(new UserDoesntExistException(this.name)))
+                .orElseThrow(() -> new UserDoesntExistException(this.name))
                 .edit()
                 .setUserName(name)
                 .execute(true);
@@ -158,11 +156,11 @@ public class PteroUserImpl implements PteroUser {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new UserDoesntExistException(this.name));
+                throw new UserDoesntExistException(this.name);
             });
 
             catching.unwrap()
-                .orElseThrow(() -> new RuntimeException(new UserDoesntExistException(this.name)))
+                .orElseThrow(() -> new UserDoesntExistException(this.name))
                 .edit()
                 .setEmail(email)
                 .execute(true);
@@ -182,11 +180,11 @@ public class PteroUserImpl implements PteroUser {
             });
 
             catching.catching(NotFoundException.class, e -> {
-                throw new RuntimeException(new UserDoesntExistException(this.name));
+                throw new UserDoesntExistException(this.name);
             });
 
             catching.unwrap()
-                .orElseThrow(() -> new RuntimeException(new UserDoesntExistException(this.name)))
+                .orElseThrow(() -> new UserDoesntExistException(this.name))
                 .edit()
                 .setPassword(password)
                 .execute(true);
