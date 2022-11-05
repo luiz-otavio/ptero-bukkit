@@ -3,6 +3,7 @@ package me.luizotavio.minecraft.factory;
 import com.mattmalec.pterodactyl4j.DataType;
 import com.mattmalec.pterodactyl4j.EnvironmentValue;
 import com.mattmalec.pterodactyl4j.application.entities.*;
+import com.mattmalec.pterodactyl4j.entities.Allocation;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
 import me.luizotavio.minecraft.comparator.NodeComparator;
 import me.luizotavio.minecraft.exception.*;
@@ -56,16 +57,18 @@ public class PteroFactoryImpl implements PteroFactory {
                     .timeout(5, TimeUnit.SECONDS)
                     .execute()
                     .size() > 0;
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+                throw new ServerAlreadyExistsException(name);
+            }
 
             if (exists) {
-                throw new RuntimeException(new ServerAlreadyExistsException(name));
+                throw new ServerAlreadyExistsException(name);
             }
 
             return false;
         }, bridge.getWorker()).thenApply(exists -> {
             if (exists) {
-                throw new RuntimeException(new ServerAlreadyExistsException(name));
+                throw new ServerAlreadyExistsException(name);
             }
 
             // Let's find an node with enough resources
@@ -73,42 +76,29 @@ public class PteroFactoryImpl implements PteroFactory {
                 .retrieveNodes()
                 .cache(false)
                 .takeWhileAsync(node -> !node.hasMaintanceMode())
+                .exceptionally(throwable -> {
+                    if (throwable instanceof NotFoundException) {
+                        throw new InsufficientResourcesException();
+                    }
+
+                    throw new RuntimeException(throwable);
+                })
                 .thenApply(collection -> {
-                    // Look for the most available node
-                    return collection.stream()
+                    Optional<Node> optional = collection.stream()
                         .min(NODE_COMPARATOR);
-                }).thenApply(optional -> {
-                    if (optional.isEmpty()) {
-                        throw new RuntimeException(new InsufficientResourcesException());
+
+                    if (optional.isPresent()) {
+                        return optional.get();
                     }
 
-                    return optional.get();
+                    throw new InsufficientResourcesException();
                 }).join();
-
-            // Let's find an allocation available
-            ApplicationAllocation allocation = targetNode.retrieveAllocations()
-                .cache(false)
-                .takeWhileAsync(allocation1 -> !allocation1.isAssigned())
-                .thenApply(collection -> {
-                    // Let's get random allocation
-                    return collection.stream()
-                        .findAny();
-                }).thenApply(optional -> {
-                    if (optional.isEmpty()) {
-                        throw new RuntimeException(new InsufficientAllocationsException());
-                    }
-
-                    return optional.get();
-                }).join();
-
             Location location = targetNode.retrieveLocation()
                 .execute();
 
             Map<String, EnvironmentValue<?>> envMap = new HashMap<>();
 
             envMap.put("SERVER_NAME", EnvironmentValue.of(name));
-            envMap.put("SERVER_PORT", EnvironmentValue.of(allocation.getPort()));
-            envMap.put("SERVER_IP", EnvironmentValue.of(allocation.getIP()));
             envMap.put("SERVER_JARFILE", EnvironmentValue.of("server.jar"));
 
             ApplicationEgg targetEgg = bridge.getApplication()
@@ -117,7 +107,7 @@ public class PteroFactoryImpl implements PteroFactory {
                 .stream()
                 .filter(applicationEgg -> applicationEgg.getName().equalsIgnoreCase(egg))
                 .findAny()
-                .orElseThrow(() -> new RuntimeException(new EggDoesntExistException(egg)));
+                .orElseThrow(() -> new EggDoesntExistException(egg));
 
             Try<Optional<ApplicationUser>> catching = Try.catching(() -> {
                 return bridge.getApplication()
@@ -128,11 +118,11 @@ public class PteroFactoryImpl implements PteroFactory {
             });
 
             catching.catching(NotFoundException.class, unused -> {
-                throw new RuntimeException(new UserDoesntExistException(owner.getEmail()));
+                throw new UserDoesntExistException(owner.getEmail());
             });
 
             ApplicationUser applicationUser = catching.unwrap()
-                .orElseThrow(() -> new RuntimeException(new UserDoesntExistException(owner.getEmail())));
+                .orElseThrow(() -> new UserDoesntExistException(owner.getEmail()));
 
             ApplicationServer applicationServer = bridge.getApplication()
                 .createServer()
@@ -141,7 +131,7 @@ public class PteroFactoryImpl implements PteroFactory {
                 .setDescription("Dedicated server for " + owner.getName())
                 .setEgg(targetEgg)
                 .setLocation(location)
-                .setAllocation(allocation)
+                .setAllocations(1)
                 .setBackups(0)
                 .setDatabases(0)
                 .setCPU(cpu)
@@ -151,7 +141,10 @@ public class PteroFactoryImpl implements PteroFactory {
                 .setEnvironment(envMap)
                 .startOnCompletion(false)
                 .setDisk(disk, DataType.MB)
-                .execute(true);
+                .execute();
+
+            Allocation allocation = applicationServer.retrieveDefaultAllocation()
+                .execute();
 
             return new PteroServerImpl(
                 bridge,
@@ -178,16 +171,18 @@ public class PteroFactoryImpl implements PteroFactory {
                     .timeout(5, TimeUnit.SECONDS)
                     .execute()
                     .size() > 0;
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+                throw new UserAlreadyExistsException();
+            }
 
             if (exists) {
-                throw new RuntimeException(new UserAlreadyExistsException());
+                throw new UserAlreadyExistsException();
             }
 
             return false;
         }, bridge.getWorker()).thenApply(exists -> {
             if (exists) {
-                throw new RuntimeException(new UserAlreadyExistsException());
+                throw new UserAlreadyExistsException();
             }
 
             String fromShort = Users.fromShort(uuid);
