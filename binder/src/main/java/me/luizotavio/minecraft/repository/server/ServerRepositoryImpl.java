@@ -64,7 +64,7 @@ public class ServerRepositoryImpl implements ServerRepository {
                 .execute();
         }).thenApply(collection -> {
             if (collection.isEmpty()) {
-                throw new RuntimeException(new ServerDoesntExistException(name));
+                throw new ServerDoesntExistException(name);
             }
 
             ApplicationServer any = collection.stream()
