@@ -20,8 +20,6 @@ public interface UserRepository {
 
     CompletableFuture<PteroUser> findUserBySnowflake(@NotNull String snowflake);
 
-    CompletableFuture<PteroUser> insertUser(@NotNull PteroUser user);
-
     CompletableFuture<PteroUser> deleteUser(@NotNull PteroUser user);
 
 }

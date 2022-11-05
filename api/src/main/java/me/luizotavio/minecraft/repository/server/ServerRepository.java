@@ -20,6 +20,4 @@ public interface ServerRepository {
 
     CompletableFuture<PteroServer> deleteServer(@NotNull PteroServer server);
 
-    CompletableFuture<PteroServer> insertServer(@NotNull PteroServer server);
-
 }
