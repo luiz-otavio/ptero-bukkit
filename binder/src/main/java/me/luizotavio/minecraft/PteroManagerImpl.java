@@ -51,8 +51,8 @@ public class PteroManagerImpl implements PteroManager {
 
         PteroBridgeVO pteroBridgeVO = PteroBridgeVO.createInstance(
             targetUrl,
-            applicationKey,
             clientKey,
+            applicationKey,
             nThreads
         );
 
