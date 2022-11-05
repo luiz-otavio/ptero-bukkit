@@ -8,6 +8,7 @@ repositories {
 
 dependencies {
     compileOnly project(':binder')
+
     implementation project(':api')
 
     paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.19.2-R0.1-SNAPSHOT")
@@ -32,8 +33,4 @@ tasks {
     processResources {
         filteringCharset = 'UTF-8' // We want UTF-8 for everything
     }
-}
-
-test {
-    useJUnitPlatform()
 }
