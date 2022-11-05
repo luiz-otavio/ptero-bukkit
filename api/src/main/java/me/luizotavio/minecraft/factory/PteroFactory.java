@@ -1,9 +1,5 @@
 package me.luizotavio.minecraft.factory;
 
-import me.luizotavio.minecraft.exception.InsufficientAllocationsException;
-import me.luizotavio.minecraft.exception.InsufficientPortRangeException;
-import me.luizotavio.minecraft.exception.InsufficientResourcesException;
-import me.luizotavio.minecraft.exception.UserAlreadyExistsException;
 import me.luizotavio.minecraft.server.PteroServer;
 import me.luizotavio.minecraft.user.PteroUser;
 import org.jetbrains.annotations.NotNull;
@@ -27,14 +23,14 @@ public interface PteroFactory {
         int memory,
         int disk,
         int cpu
-    ) throws InsufficientAllocationsException, InsufficientPortRangeException, InsufficientResourcesException;
+    );
 
     CompletableFuture<PteroUser> createUser(
         @NotNull UUID uuid,
         @NotNull String username,
         @NotNull String password,
         @Nullable String email
-    ) throws UserAlreadyExistsException;
+    );
 
 
 
