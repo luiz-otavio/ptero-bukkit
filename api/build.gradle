@@ -2,19 +2,6 @@ plugins {
     id 'maven-publish'
 }
 
-repositories {
-    maven {
-        name = 'mattmalec-repo'
-        url = 'https://repo.mattmalec.com/repository/releases'
-    }
-}
-
-dependencies {
-    implementation 'com.mattmalec:Pterodactyl4J:2.BETA_136'
-
-    implementation project(':api')
-}
-
 afterEvaluate {
     publishing {
         publications {

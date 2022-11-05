@@ -12,9 +12,23 @@ subprojects {
     group project_groupId
     version project_version
 
+    // Load local.properties
+    def localProperties = new Properties()
+    localProperties.load(new FileInputStream(rootProject.file('local.properties')))
+
     repositories {
         mavenCentral()
         mavenLocal()
+
+        maven {
+            name = "Github"
+            url = 'https://maven.pkg.github.com/luiz-otavio/ptero-mc-interface'
+
+            credentials {
+                username localProperties.get('github.username')
+                password localProperties.get('github.token')
+            }
+        }
     }
 
     dependencies {
