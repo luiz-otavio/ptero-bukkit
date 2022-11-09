@@ -1,6 +1,9 @@
 package net.luxcube.minecraft.repository.server;
 
+import com.mattmalec.pterodactyl4j.UtilizationState;
 import com.mattmalec.pterodactyl4j.application.entities.ApplicationServer;
+import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
+import com.mattmalec.pterodactyl4j.client.entities.Utilization;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
 import net.luxcube.minecraft.exception.ServerDoesntExistException;
 import net.luxcube.minecraft.logger.PteroLogger;
@@ -12,9 +15,12 @@ import net.luxcube.minecraft.util.Try;
 import net.luxcube.minecraft.vo.PteroBridgeVO;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author Luiz O. F. Corrêa
@@ -136,6 +142,42 @@ public class ServerRepositoryImpl implements ServerRepository {
                     .execute();
 
                 return server;
+            });
+    }
+
+    @Override
+    public CompletableFuture<List<PteroServer>> retrieveServersByPage(int page) {
+        return bridge.getApplication()
+            .retrieveServers()
+            .cache(true)
+            .limit(page * 15)
+            .timeout(10, TimeUnit.SECONDS)
+            .takeWhileAsync(1, applicationServer -> {
+                ClientServer server = bridge.getClient()
+                    .retrieveServerByIdentifier(applicationServer.getIdentifier())
+                    .execute();
+
+                Utilization utilization = server.retrieveUtilization()
+                    .execute();
+
+                return utilization.getState() == UtilizationState.RUNNING;
+            }).thenApply(collection -> {
+                if (collection.isEmpty()) {
+                    return Collections.emptyList();
+                }
+
+                return collection.stream()
+                    .map(applicationServer -> {
+                        Pair<String, String> addressAndNode = Servers.getAddressAndNode(applicationServer);
+
+                        return new PteroServerImpl(
+                            bridge,
+                            applicationServer.getIdentifier(),
+                            addressAndNode.first(),
+                            addressAndNode.second(),
+                            applicationServer.getUUID()
+                        );
+                    }).collect(Collectors.toList());
             });
     }
 }
