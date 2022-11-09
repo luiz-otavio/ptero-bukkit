@@ -4,6 +4,7 @@ import net.luxcube.minecraft.exception.ServerDoesntExistException;
 import net.luxcube.minecraft.server.PteroServer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -49,5 +50,11 @@ public interface ServerRepository {
      * @return A future of the completable server.
      */
     CompletableFuture<PteroServer> deleteServer(@NotNull PteroServer server);
+
+    /**
+     * Lists all servers from the pterodactyl.
+     * @return A future of the completable list of servers.
+     */
+    CompletableFuture<List<PteroServer>> retrieveServersByPage(int page);
 
 }
