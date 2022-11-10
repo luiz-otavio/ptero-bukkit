@@ -41,6 +41,10 @@ subprojects {
         testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
     }
 
+    tasks.withType(Javadoc) {
+        failOnError false
+    }
+
     test {
         useJUnitPlatform()
     }
@@ -49,8 +53,20 @@ subprojects {
         options.encoding = 'UTF-8'
     }
 
+    javadoc {
+        source = sourceSets.main.allJava
+        classpath = configurations.runtimeClasspath
+    }
+
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        enabled = false
+    }
+
     // Use java 17 due to newest version of Minecraft
     java {
+        withSourcesJar()
+        withJavadocJar()
+
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }

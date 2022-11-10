@@ -1,13 +1,3 @@
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven {
-            name = 'papermc'
-            url = 'https://papermc.io/repo/repository/maven-public/'
-        }
-    }
-}
-
 rootProject.name = 'ptero-mc-interface'
 
 include 'test'
