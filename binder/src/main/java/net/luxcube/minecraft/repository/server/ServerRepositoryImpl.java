@@ -59,6 +59,7 @@ public class ServerRepositoryImpl implements ServerRepository {
                     any.getIdentifier(),
                     addressAndNode.first(),
                     addressAndNode.second(),
+                    any.getName(),
                     any.getUUID()
                 );
             });
@@ -89,6 +90,7 @@ public class ServerRepositoryImpl implements ServerRepository {
                 any.getIdentifier(),
                 addressAndNode.first(),
                 addressAndNode.second(),
+                any.getName(),
                 any.getUUID()
             );
         });
@@ -116,6 +118,7 @@ public class ServerRepositoryImpl implements ServerRepository {
                 server.getIdentifier(),
                 addressAndNode.first(),
                 addressAndNode.second(),
+                server.getName(),
                 server.getUUID()
             );
         });
@@ -175,6 +178,7 @@ public class ServerRepositoryImpl implements ServerRepository {
                             applicationServer.getIdentifier(),
                             addressAndNode.first(),
                             addressAndNode.second(),
+                            applicationServer.getName(),
                             applicationServer.getUUID()
                         );
                     }).collect(Collectors.toList());

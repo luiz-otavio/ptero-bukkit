@@ -109,6 +109,7 @@ public class PteroUserImpl implements PteroUser {
                     server.getIdentifier(),
                     addressAndNode.first(),
                     addressAndNode.second(),
+                    server.getName(),
                     server.getUUID()
                 );
 

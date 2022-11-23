@@ -27,6 +27,7 @@ public class PteroServerImpl implements PteroServer {
     private final String identifier;
     private final String address;
     private final String node;
+    private final String name;
 
     private final UUID uuid;
 
@@ -35,18 +36,25 @@ public class PteroServerImpl implements PteroServer {
         @NotNull String identifier,
         @NotNull String address,
         @NotNull String node,
+        @NotNull String name,
         @NotNull UUID uuid
     ) {
         this.bridge = bridge;
         this.identifier = identifier;
         this.address = address;
         this.node = node;
+        this.name = name;
         this.uuid = uuid;
     }
 
     @Override
     public @NotNull String getIdentifier() {
         return identifier;
+    }
+
+    @Override
+    public @NotNull String getName() {
+        return name;
     }
 
     @Override
