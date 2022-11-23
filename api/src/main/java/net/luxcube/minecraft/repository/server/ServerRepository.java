@@ -55,6 +55,6 @@ public interface ServerRepository {
      * Lists all servers from the pterodactyl.
      * @return A future of the completable list of servers.
      */
-    CompletableFuture<List<PteroServer>> retrieveServersByPage(int page);
+    CompletableFuture<List<PteroServer>> retrieveServersByPage(int page, int size);
 
 }

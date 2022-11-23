@@ -149,11 +149,12 @@ public class ServerRepositoryImpl implements ServerRepository {
     }
 
     @Override
-    public CompletableFuture<List<PteroServer>> retrieveServersByPage(int page) {
+    public CompletableFuture<List<PteroServer>> retrieveServersByPage(int page, int size) {
         return bridge.getApplication()
             .retrieveServers()
-            .cache(true)
-            .limit(page * 15)
+            .cache(false)
+            .skipTo(Math.max(page, 1))
+            .limit(size)
             .timeout(10, TimeUnit.SECONDS)
             .takeWhileAsync(1, applicationServer -> {
                 ClientServer server = bridge.getClient()
