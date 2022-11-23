@@ -25,6 +25,13 @@ public interface PteroServer {
     String getIdentifier();
 
     /**
+     * Retrieve the name of the server.
+     * @return The name of the server.
+     */
+    @NotNull
+    String getName();
+
+    /**
      * Retrieve the UUID of the server.
      * @return The UUID of the server.
      */
