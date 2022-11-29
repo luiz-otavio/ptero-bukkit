@@ -69,16 +69,10 @@ public class UserRepositoryImpl implements UserRepository {
         return CompletableFuture.supplyAsync(() -> {
             return bridge.getApplication()
                 .retrieveUsers()
-                .cache(false)
+                .cache(true)
                 .timeout(10, TimeUnit.SECONDS)
                 .stream()
-                .filter(target -> {
-                    System.out.println("user.getFirstName() = " + target.getFirstName());
-
-                    System.out.println("user.getUserName() = " + target.getUserName());
-
-                    return target.getFirstName().startsWith(fromShort);
-                }).findAny()
+                .filter(target -> target.getFirstName().startsWith(fromShort)).findAny()
                 .orElseThrow(() -> new UserDoesntExistException(uuid.toString()));
         }, bridge.getWorker()).whenComplete((user, throwable) -> {
             if (throwable != null) {
