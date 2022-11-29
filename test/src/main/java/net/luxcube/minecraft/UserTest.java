@@ -3,6 +3,7 @@ package net.luxcube.minecraft;
 import net.luxcube.minecraft.PteroManager;
 import net.luxcube.minecraft.PteroManagerImpl;
 import net.luxcube.minecraft.user.PteroUser;
+import net.luxcube.minecraft.util.Users;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class UserTest {
 
     static PteroManager pteroManager;
+    static UUID uuid;
 
     @BeforeAll
     public static void setup() {
@@ -26,13 +28,15 @@ public class UserTest {
             "http://5.249.162.105",
             4
         );
+
+        uuid = UUID.randomUUID();
     }
 
     @Test
     public void createUser() {
         PteroUser user = pteroManager.getFactory()
             .createUser(
-                UUID.randomUUID(),
+                uuid,
                 "luiz-otavio",
                 "123456",
                 null
@@ -47,9 +51,42 @@ public class UserTest {
     }
 
     @Test
+    public void findUserByUUID() {
+        UUID targetUUID = UUID.randomUUID();
+
+        System.out.println("Users.fromShort() = " + Users.fromShort(targetUUID));
+
+        PteroUser user = pteroManager.getFactory()
+            .createUser(
+                targetUUID,
+                "luxcube-user",
+                "123456",
+                null
+            ).exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            }).join();
+
+        assertNotNull(user, "User is null");
+
+        System.out.println("user.getId() = " + user.getId());
+
+        PteroUser targetUser = pteroManager.getUserRepository()
+            .findUserByUUID(targetUUID)
+            .exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            }).join();
+
+        assertNotNull(targetUser, "Target user is null");
+
+        System.out.println("targetUser.getId() = " + targetUser.getId());
+    }
+
+    @Test
     public void deleteUser() {
         PteroUser pteroUser = pteroManager.getUserRepository()
-            .findUserByUsername("luiz-otavio")
+            .findUserByUsername("luxcube-user")
             .exceptionally(throwable -> {
                 throwable.printStackTrace();
                 return null;
