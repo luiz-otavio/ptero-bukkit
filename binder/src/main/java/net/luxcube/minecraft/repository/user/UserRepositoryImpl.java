@@ -66,29 +66,34 @@ public class UserRepositoryImpl implements UserRepository {
 
         String fromShort = Users.fromShort(uuid);
 
-        return bridge.getApplication()
-            .retrieveUsers()
-            .cache(true)
-            .timeout(10, TimeUnit.SECONDS)
-            .takeWhileAsync(1, user -> user.getFirstName().equals(fromShort))
-            .thenApply(users -> {
-                if (users.isEmpty()) {
-                    throw new UserDoesntExistException(uuid.toString());
-                }
+        return CompletableFuture.supplyAsync(() -> {
+            return bridge.getApplication()
+                .retrieveUsers()
+                .cache(false)
+                .timeout(10, TimeUnit.SECONDS)
+                .stream()
+                .filter(target -> {
+                    System.out.println("user.getFirstName() = " + target.getFirstName());
 
-                return users.stream()
-                    .findFirst()
-                    .orElseThrow(() -> new UserDoesntExistException(uuid.toString()));
-            }).thenApply(user -> {
-                return new PteroUserImpl(
-                    bridge,
-                    user.getId(),
-                    user.getUserName(),
-                    user.getEmail(),
-                    null,
-                    null
-                );
-            });
+                    System.out.println("user.getUserName() = " + target.getUserName());
+
+                    return target.getFirstName().startsWith(fromShort);
+                }).findAny()
+                .orElseThrow(() -> new UserDoesntExistException(uuid.toString()));
+        }, bridge.getWorker()).whenComplete((user, throwable) -> {
+            if (throwable != null) {
+                throwable.printStackTrace();
+            }
+        }).thenApply(user -> {
+            return new PteroUserImpl(
+                bridge,
+                user.getId(),
+                user.getUserName(),
+                user.getEmail(),
+                uuid,
+                null
+            );
+        });
     }
 
     @Override
