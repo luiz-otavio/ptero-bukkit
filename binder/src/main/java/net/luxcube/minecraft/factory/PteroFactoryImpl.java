@@ -7,14 +7,19 @@ import com.mattmalec.pterodactyl4j.application.entities.*;
 import com.mattmalec.pterodactyl4j.client.entities.Account;
 import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
 import com.mattmalec.pterodactyl4j.entities.Allocation;
-import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
+import com.mattmalec.pterodactyl4j.exceptions.PteroException;
 import net.luxcube.minecraft.comparator.NodeComparator;
-import net.luxcube.minecraft.exception.*;
+import net.luxcube.minecraft.exception.EggDoesntExistException;
+import net.luxcube.minecraft.exception.InsufficientResourcesException;
+import net.luxcube.minecraft.exception.ServerAlreadyExistsException;
+import net.luxcube.minecraft.exception.UserAlreadyExistsException;
 import net.luxcube.minecraft.logger.PteroLogger;
 import net.luxcube.minecraft.server.PteroServer;
 import net.luxcube.minecraft.server.PteroServerImpl;
 import net.luxcube.minecraft.user.PteroUser;
 import net.luxcube.minecraft.user.PteroUserImpl;
+import net.luxcube.minecraft.util.LuxcubeThrowner;
+import net.luxcube.minecraft.util.Try;
 import net.luxcube.minecraft.util.Users;
 import net.luxcube.minecraft.vo.PteroBridgeVO;
 import org.jetbrains.annotations.NotNull;
@@ -33,10 +38,12 @@ import java.util.concurrent.TimeUnit;
  **/
 public class PteroFactoryImpl implements PteroFactory {
 
+    private static final LuxcubeThrowner ALREADY_EXISTS_THROWN = new LuxcubeThrowner<>(UserAlreadyExistsException::new);
     public static final Permission[] USER_PERMISSIONS = {
         Permission.FILE_READ, Permission.FILE_DELETE, Permission.FILE_CREATE, Permission.FILE_ARCHIVE, Permission.FILE_READ_CONTENT, Permission.FILE_UPDATE,
         Permission.CONTROL_CONSOLE, Permission.CONTROL_RESTART, Permission.CONTROL_START, Permission.CONTROL_STOP,
         Permission.USER_CREATE, Permission.USER_READ, Permission.USER_DELETE, Permission.USER_UPDATE,
+        Permission.DATABASE_CREATE, Permission.DATABASE_READ, Permission.DATABASE_DELETE, Permission.DATABASE_UPDATE, Permission.DATABASE_VIEW_PASSWORD
     };
 
     public static final NodeComparator NODE_COMPARATOR = new NodeComparator();
@@ -97,11 +104,7 @@ public class PteroFactoryImpl implements PteroFactory {
                 .cache(false)
                 .takeWhileAsync(node -> !node.hasMaintanceMode())
                 .exceptionally(throwable -> {
-                    if (throwable instanceof NotFoundException) {
-                        throw new InsufficientResourcesException();
-                    }
-
-                    throw new RuntimeException(throwable);
+                    throw new InsufficientResourcesException();
                 })
                 .thenApply(collection -> {
                     Optional<Node> optional = collection.stream()
@@ -138,22 +141,17 @@ public class PteroFactoryImpl implements PteroFactory {
                 .setEgg(targetEgg)
                 .setLocation(location)
                 .setAllocations(1)
-                .setBackups(0)
-                .setDatabases(0)
+                .setBackups(1)
                 .setCPU(cpu)
                 .setDockerImage(dockerImage)
                 .setMemory(memory, DataType.MB)
                 .setStartupCommand(startupCommand)
                 .setEnvironment(envMap)
                 .startOnCompletion(false)
+                .setDatabases(1)
+                .skipScripts(true)
                 .setDisk(disk, DataType.MB)
                 .execute();
-
-            // Let's wait for the server to be created
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException ignored) {
-            }
 
             ClientServer clientServer = bridge.getClient()
                 .retrieveServerByIdentifier(applicationServer.getIdentifier())
@@ -163,6 +161,7 @@ public class PteroFactoryImpl implements PteroFactory {
                 .createUser()
                 .setEmail(owner.getEmail())
                 .setPermissions(USER_PERMISSIONS)
+                .delay(10, TimeUnit.SECONDS)
                 .execute(true);
 
             Allocation allocation = applicationServer.retrieveDefaultAllocation()
@@ -212,16 +211,22 @@ public class PteroFactoryImpl implements PteroFactory {
 
             String fromShort = Users.fromShort(uuid);
 
-            return bridge.getApplication()
-                .getUserManager()
-                .createUser()
-                .setPassword(password)
-                .setEmail(email == null ? String.format("%s@%s", username, "luxcube.net") : email)
-                .setUserName(username)
-                .setFirstName(fromShort)
-                .setLastName("'s Account")
-                .timeout(10, TimeUnit.SECONDS)
-                .execute(true);
+            Try<ApplicationUser> catching = Try.catching(() -> {
+                return bridge.getApplication()
+                    .getUserManager()
+                    .createUser()
+                    .setPassword(password)
+                    .setEmail(email == null ? String.format("%s@%s", username, "luxcube.net") : email)
+                    .setUserName(username)
+                    .setFirstName(fromShort)
+                    .setLastName("'s Account")
+                    .timeout(10, TimeUnit.SECONDS)
+                    .execute(true);
+            });
+
+            catching.catching(PteroException.class, ALREADY_EXISTS_THROWN);
+
+            return catching.unwrap();
         }).thenApply(applicationUser -> {
             return new PteroUserImpl(
                 bridge,
