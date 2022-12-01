@@ -1,6 +1,7 @@
 package net.luxcube.minecraft.logger;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Luiz O. F. Corrêa
@@ -8,30 +9,30 @@ import java.util.logging.Logger;
  **/
 public class PteroLogger {
 
-    private static final Logger LOGGER = Logger.getLogger("PteroMC");
+    private static final Logger LOGGER = LoggerFactory.getLogger("PteroBridge");
 
     public static void info(String message) {
         LOGGER.info(message);
     }
 
     public static void warning(String message) {
-        LOGGER.warning(message);
+        LOGGER.warn(message);
     }
 
     public static void severe(String message) {
-        LOGGER.severe(message);
+        LOGGER.error(message);
     }
 
     public static void debug(String message) {
-        LOGGER.fine(message);
+        LOGGER.debug(message);
     }
 
     public static void debug(String message, Object... args) {
-        LOGGER.fine(String.format(message, args));
+        LOGGER.debug(String.format(message, args));
     }
 
     public static void severe(String message, Throwable throwable) {
-        LOGGER.severe(message);
+        LOGGER.error(message);
         throwable.printStackTrace();
     }
 
