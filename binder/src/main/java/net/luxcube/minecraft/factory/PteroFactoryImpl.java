@@ -2,7 +2,6 @@ package net.luxcube.minecraft.factory;
 
 import com.mattmalec.pterodactyl4j.DataType;
 import com.mattmalec.pterodactyl4j.EnvironmentValue;
-import com.mattmalec.pterodactyl4j.Permission;
 import com.mattmalec.pterodactyl4j.application.entities.*;
 import com.mattmalec.pterodactyl4j.client.entities.Account;
 import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
@@ -13,6 +12,7 @@ import net.luxcube.minecraft.exception.EggDoesntExistException;
 import net.luxcube.minecraft.exception.InsufficientResourcesException;
 import net.luxcube.minecraft.exception.ServerAlreadyExistsException;
 import net.luxcube.minecraft.exception.UserAlreadyExistsException;
+import net.luxcube.minecraft.listener.ServerListener;
 import net.luxcube.minecraft.logger.PteroLogger;
 import net.luxcube.minecraft.server.PteroServer;
 import net.luxcube.minecraft.server.PteroServerImpl;
@@ -39,12 +39,6 @@ import java.util.concurrent.TimeUnit;
 public class PteroFactoryImpl implements PteroFactory {
 
     private static final LuxcubeThrowner ALREADY_EXISTS_THROWN = new LuxcubeThrowner<>(UserAlreadyExistsException::new);
-    public static final Permission[] USER_PERMISSIONS = {
-        Permission.FILE_READ, Permission.FILE_DELETE, Permission.FILE_CREATE, Permission.FILE_ARCHIVE, Permission.FILE_READ_CONTENT, Permission.FILE_UPDATE,
-        Permission.CONTROL_CONSOLE, Permission.CONTROL_RESTART, Permission.CONTROL_START, Permission.CONTROL_STOP,
-        Permission.USER_CREATE, Permission.USER_READ, Permission.USER_DELETE, Permission.USER_UPDATE,
-        Permission.DATABASE_CREATE, Permission.DATABASE_READ, Permission.DATABASE_DELETE, Permission.DATABASE_UPDATE, Permission.DATABASE_VIEW_PASSWORD
-    };
 
     public static final NodeComparator NODE_COMPARATOR = new NodeComparator();
 
@@ -122,7 +116,6 @@ public class PteroFactoryImpl implements PteroFactory {
 
             Map<String, EnvironmentValue<?>> envMap = new HashMap<>();
 
-            envMap.put("SERVER_NAME", EnvironmentValue.of(name));
             envMap.put("SERVER_JARFILE", EnvironmentValue.of("server.jar"));
 
             ApplicationEgg targetEgg = bridge.getApplication()
@@ -137,11 +130,10 @@ public class PteroFactoryImpl implements PteroFactory {
                 .createServer()
                 .setName(name)
                 .setOwner(account)
-                .setDescription("Dedicated server for " + owner.getName())
+                .setDescription(owner.getName() + "'s server")
                 .setEgg(targetEgg)
                 .setLocation(location)
                 .setAllocations(1)
-                .setBackups(1)
                 .setCPU(cpu)
                 .setDockerImage(dockerImage)
                 .setMemory(memory, DataType.MB)
@@ -149,20 +141,19 @@ public class PteroFactoryImpl implements PteroFactory {
                 .setEnvironment(envMap)
                 .startOnCompletion(false)
                 .setDatabases(1)
-                .skipScripts(true)
                 .setDisk(disk, DataType.MB)
                 .execute();
 
-            ClientServer clientServer = bridge.getClient()
+            ClientServer server = bridge.getClient()
                 .retrieveServerByIdentifier(applicationServer.getIdentifier())
                 .execute();
 
-            clientServer.getSubuserManager()
-                .createUser()
-                .setEmail(owner.getEmail())
-                .setPermissions(USER_PERMISSIONS)
-                .delay(10, TimeUnit.SECONDS)
-                .execute(true);
+            if (server.isInstalling()) {
+                server.getWebSocketBuilder()
+                    .addEventListeners(new ServerListener(bridge, owner.getEmail()))
+                    .build();
+            }
+
 
             Allocation allocation = applicationServer.retrieveDefaultAllocation()
                 .execute();
