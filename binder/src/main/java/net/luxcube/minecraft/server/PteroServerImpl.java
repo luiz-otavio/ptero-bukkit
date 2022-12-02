@@ -1,13 +1,18 @@
 package net.luxcube.minecraft.server;
 
+import com.mattmalec.pterodactyl4j.Permission;
 import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
+import com.mattmalec.pterodactyl4j.client.entities.ClientSubuser;
 import com.mattmalec.pterodactyl4j.client.entities.Utilization;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
+import com.mattmalec.pterodactyl4j.exceptions.PteroException;
 import net.luxcube.minecraft.exception.ServerDoesntExistException;
 import net.luxcube.minecraft.logger.PteroLogger;
 import net.luxcube.minecraft.server.status.StatusType;
 import net.luxcube.minecraft.server.usage.ServerUsage;
 import net.luxcube.minecraft.server.usage.ServerUsageImpl;
+import net.luxcube.minecraft.user.PteroUser;
+import net.luxcube.minecraft.util.Pair;
 import net.luxcube.minecraft.util.Try;
 import net.luxcube.minecraft.vo.PteroBridgeVO;
 import org.jetbrains.annotations.NotNull;
@@ -131,6 +136,99 @@ public class PteroServerImpl implements PteroServer {
                 Math.max(0, (int) utilization.getCPU()),
                 Math.max(0, (int) utilization.getDisk())
             );
+        });
+    }
+
+    @Override
+    public CompletableFuture<Void> allow(@NotNull PteroUser pteroUser) {
+        PteroLogger.debug("Allowing user %s to access server %s", pteroUser.getId(), identifier);
+
+        return CompletableFuture.supplyAsync(() -> {
+            return bridge.getClient()
+                .retrieveServerByIdentifier(identifier)
+                .execute();
+        }, bridge.getWorker()).thenApply(clientServer -> {
+            Try<ClientSubuser> catching = Try.catching(() -> {
+                return clientServer.retrieveSubuser(pteroUser.getUniqueId())
+                    .execute();
+            });
+
+            catching.catching(PteroException.class, e -> {
+                throw new ServerDoesntExistException(identifier);
+            });
+
+            return new Pair<>(clientServer, catching.unwrap());
+        }).thenAccept(pair -> {
+            ClientSubuser user = pair.second();
+
+            if (user.hasPermission(Permission.CONTROL_PERMISSIONS)) {
+                PteroLogger.debug("User %s already has permission to access server %s", pteroUser.getId(), identifier);
+                return;
+            }
+
+            Permission[] permissions = new Permission[user.getPermissions().size() + Permission.CONTROL_PERMISSIONS.length];
+
+            // Clone permissions
+            System.arraycopy(user.getPermissions().toArray(), 0, permissions, 0, user.getPermissions().size());
+
+            // Add control permissions
+            System.arraycopy(Permission.CONTROL_PERMISSIONS, 0, permissions, user.getPermissions().size(), Permission.CONTROL_PERMISSIONS.length);
+
+            ClientServer server = pair.first();
+            server.getSubuserManager()
+                .editUser(user)
+                .setPermissions(permissions)
+                .executeAsync();
+
+            PteroLogger.debug("User %s now has permission to access server %s", pteroUser.getId(), identifier);
+        });
+    }
+
+    @Override
+    public CompletableFuture<Void> disallow(@NotNull PteroUser pteroUser) {
+        return CompletableFuture.supplyAsync(() -> {
+            return bridge.getClient()
+                .retrieveServerByIdentifier(identifier)
+                .execute();
+        }, bridge.getWorker()).thenApply(clientServer -> {
+            Try<ClientSubuser> catching = Try.catching(() -> {
+                return clientServer.retrieveSubuser(pteroUser.getUniqueId())
+                    .execute();
+            });
+
+            catching.catching(PteroException.class, e -> {
+                throw new ServerDoesntExistException(identifier);
+            });
+
+            return new Pair<>(clientServer, catching.unwrap());
+        }).thenAccept(pair -> {
+            ClientSubuser user = pair.second();
+
+            if (!user.hasPermission(Permission.CONTROL_PERMISSIONS)) {
+                PteroLogger.debug("User %s already doesn't have permission to access server %s", pteroUser.getId(), identifier);
+                return;
+            }
+
+            Permission[] permissions = user.getPermissions()
+                .toArray(new Permission[0]);
+
+            // Remove control permissions
+            for (Permission permission : Permission.CONTROL_PERMISSIONS) {
+                for (int i = 0; i < permissions.length; i++) {
+                    if (permissions[i] == permission) {
+                        permissions[i] = null;
+                        break;
+                    }
+                }
+            }
+
+            ClientServer server = pair.first();
+            server.getSubuserManager()
+                .editUser(user)
+                .setPermissions(permissions)
+                .executeAsync();
+
+            PteroLogger.debug("User %s now doesn't have permission to access server %s", pteroUser.getId(), identifier);
         });
     }
 
