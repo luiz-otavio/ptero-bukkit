@@ -2,6 +2,7 @@ package net.luxcube.minecraft.server;
 
 import net.luxcube.minecraft.server.status.StatusType;
 import net.luxcube.minecraft.server.usage.ServerUsage;
+import net.luxcube.minecraft.user.PteroUser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -64,6 +65,20 @@ public interface PteroServer {
      * @return A future of the completable usage.
      */
     CompletableFuture<ServerUsage> getUsage();
+
+    /**
+     * Allow the user to change the state of the server.
+     * @param pteroUser The user that will change the state of the server.
+     * @return A future of the completable state.
+     */
+    CompletableFuture<Void> allow(@NotNull PteroUser pteroUser);
+
+    /**
+     * Deny the user to change the state of the server.
+     * @param pteroUser The user that will change the state of the server.
+     * @return A future of the completable state.
+     */
+    CompletableFuture<Void> disallow(@NotNull PteroUser pteroUser);
 
     /**
      * Execute the start command of the server.
