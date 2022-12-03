@@ -46,7 +46,7 @@ public interface PteroFactory {
      * @param startupCommand The startup command of the server.
      * @param memory The memory of the server.
      * @param disk The disk of the server.
-     * @param cpu The cpu of the server.
+     * @param cpu The limit of using CPU of the server. (0-100 for each core, so you can do 100 * 2 for 2 cores)
      * @return A future of the completable server.
      */
     CompletableFuture<PteroServer> createServer(
