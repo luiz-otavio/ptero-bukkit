@@ -255,6 +255,22 @@ public class PteroServerImpl implements PteroServer {
     }
 
     @Override
+    public CompletableFuture<Boolean> hasPermission(@NotNull PteroUser pteroUser) {
+        return CompletableFuture.supplyAsync(() -> {
+            return bridge.getClient()
+                .retrieveServerByIdentifier(identifier)
+                .timeout(5, TimeUnit.SECONDS)
+                .execute();
+        }).thenApply(clientServer -> {
+            boolean exists = clientServer.getSubusers()
+                .stream()
+                .anyMatch(subUser -> subUser.getEmail().equals(pteroUser.getEmail()));
+
+            return exists;
+        });
+    }
+
+    @Override
     public CompletableFuture<Void> stop() {
         PteroLogger.debug("Stopping server %s", identifier);
 
