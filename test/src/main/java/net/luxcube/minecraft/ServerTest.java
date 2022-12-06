@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Luiz O. F. Corrêa
@@ -75,9 +76,6 @@ public class ServerTest {
         assertNotNull(server, "Server is null");
 
         System.out.println("server.getIdentifier() = " + server.getIdentifier());
-
-        while (server.
-
     }
 
     @Test
@@ -91,7 +89,31 @@ public class ServerTest {
 
         assertNotNull(pteroServers, "Servers is null");
 
-        pteroServers.forEach(pteroServer -> System.out.println("pteroServer.getIdentifier() = " + pteroServer.getIdentifier()));
+        assertTrue(pteroServers.size() > 0, "Servers is empty");
+    }
+
+    @Test
+    public void fetchingFromUser() {
+        PteroUser pteroUser = pteroManager.getUserRepository()
+            .findUserByUsername("luiz-otavio")
+            .exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            }).join();
+
+        assertNotNull(pteroUser, "User not found");
+
+        List<PteroServer> pteroServers = pteroUser.getServers()
+            .exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            }).join();
+
+        assertNotNull(pteroServers, "Servers is null");
+
+        System.out.println("pteroServers.size() = " + pteroServers.size());
+
+        assertTrue(pteroServers.size() > 0, "Servers is empty");
     }
 
     @Test

@@ -1,7 +1,9 @@
 package net.luxcube.minecraft.user;
 
+import com.mattmalec.pterodactyl4j.ClientType;
 import com.mattmalec.pterodactyl4j.application.entities.ApplicationServer;
 import com.mattmalec.pterodactyl4j.application.entities.ApplicationUser;
+import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
 import net.luxcube.minecraft.exception.UserDoesntExistException;
 import net.luxcube.minecraft.server.PteroServer;
@@ -16,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author Luiz O. F. Corrêa
@@ -76,32 +79,21 @@ public class PteroUserImpl implements PteroUser {
     @Override
     public @NotNull CompletableFuture<List<PteroServer>> getServers() {
         return CompletableFuture.supplyAsync(() -> {
-            Try<Optional<ApplicationUser>> catching = Try.catching(() -> {
-                return bridge.getApplication()
-                    .retrieveUsersByUsername(name, true)
-                    .timeout(5, TimeUnit.SECONDS)
-                    .execute()
+            return bridge.getClient()
+                .retrieveServers(ClientType.OWNER)
+                .cache(true)
+                .stream()
+                .takeWhile(server -> server.getSubusers()
                     .stream()
-                    .findFirst();
-            });
-
-            catching.catching(NotFoundException.class, e -> {
-                throw new UserDoesntExistException(name);
-            });
-
-            return catching.unwrap()
-                .orElseThrow(() -> new UserDoesntExistException(name));
-        }, bridge.getWorker()).thenApply(user -> {
-            List<ApplicationServer> servers = user.retrieveServers()
-                .timeout(5, TimeUnit.SECONDS)
-                .execute();
-
+                    .anyMatch(subUser -> subUser.getEmail().equals(email))
+                ).toList();
+        }, bridge.getWorker()).thenApply(servers -> {
             if (servers.isEmpty()) {
                 return Collections.emptyList();
             }
 
             List<PteroServer> pteroServers = new ArrayList<>(servers.size());
-            for (ApplicationServer server : servers) {
+            for (ClientServer server : servers) {
                 Pair<String, String> addressAndNode = Servers.getAddressAndNode(server);
 
                 PteroServer targetServer = new PteroServerImpl(
@@ -125,7 +117,7 @@ public class PteroUserImpl implements PteroUser {
         return CompletableFuture.runAsync(() -> {
             Try<Optional<ApplicationUser>> catching = Try.catching(() -> {
                 return bridge.getApplication()
-                    .retrieveUsersByUsername(this.name, true)
+                    .retrieveUsersByEmail(email, true)
                     .timeout(5, TimeUnit.SECONDS)
                     .execute()
                     .stream()
@@ -149,7 +141,7 @@ public class PteroUserImpl implements PteroUser {
         return CompletableFuture.runAsync(() -> {
             Try<Optional<ApplicationUser>> catching = Try.catching(() -> {
                 return bridge.getApplication()
-                    .retrieveUsersByUsername(this.name, true)
+                    .retrieveUsersByEmail(email, true)
                     .timeout(5, TimeUnit.SECONDS)
                     .execute()
                     .stream()
@@ -173,7 +165,7 @@ public class PteroUserImpl implements PteroUser {
         return CompletableFuture.runAsync(() -> {
             Try<Optional<ApplicationUser>> catching = Try.catching(() -> {
                 return bridge.getApplication()
-                    .retrieveUsersByUsername(this.name, true)
+                    .retrieveUsersByEmail(email, true)
                     .timeout(5, TimeUnit.SECONDS)
                     .execute()
                     .stream()
