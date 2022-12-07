@@ -27,8 +27,6 @@ public class NodeComparator implements Comparator<Node> {
             o1Memory = 0;
         }
 
-        Node targetNode;
-
         // Let's sum the memory of all o1's servers
         int o1Sum = o1.retrieveServers()
             .map(collection -> {
