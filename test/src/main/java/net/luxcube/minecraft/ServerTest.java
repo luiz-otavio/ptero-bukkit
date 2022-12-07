@@ -5,9 +5,11 @@ import net.luxcube.minecraft.user.PteroUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Luiz O. F. Corrêa
@@ -21,7 +23,7 @@ public class ServerTest {
     public static void setup() {
         pteroManager = new PteroManagerImpl(
             "ptla_NZuGwOqmNT8BpCH4hT2LfYBkftWvE989aYhoDixZe2q",
-            "ptlc_wL9JEOo7b4pVUBRQFhpth8BR0fTIe7LEOd2y4wRjPpY",
+            "ptlc_fPK6UAWJwLuSbSteEng1dIhc2p4G5pVImrA0k9xuROH",
             "http://5.249.162.105",
             4
         );
@@ -74,6 +76,44 @@ public class ServerTest {
         assertNotNull(server, "Server is null");
 
         System.out.println("server.getIdentifier() = " + server.getIdentifier());
+    }
+
+    @Test
+    public void fetchAll() {
+        List<PteroServer> pteroServers = pteroManager.getServerRepository()
+            .retrieveServersByPage(1, 10)
+            .exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            }).join();
+
+        assertNotNull(pteroServers, "Servers is null");
+
+        assertTrue(pteroServers.size() > 0, "Servers is empty");
+    }
+
+    @Test
+    public void fetchingFromUser() {
+        PteroUser pteroUser = pteroManager.getUserRepository()
+            .findUserByUsername("luiz-otavio")
+            .exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            }).join();
+
+        assertNotNull(pteroUser, "User not found");
+
+        List<PteroServer> pteroServers = pteroUser.getServers()
+            .exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            }).join();
+
+        assertNotNull(pteroServers, "Servers is null");
+
+        System.out.println("pteroServers.size() = " + pteroServers.size());
+
+        assertTrue(pteroServers.size() > 0, "Servers is empty");
     }
 
     @Test

@@ -150,39 +150,27 @@ public class ServerRepositoryImpl implements ServerRepository {
 
     @Override
     public CompletableFuture<List<PteroServer>> retrieveServersByPage(int page, int size) {
-        return bridge.getApplication()
-            .retrieveServers()
-            .cache(false)
-            .skipTo(Math.max(page, 1))
-            .limit(size)
-            .timeout(10, TimeUnit.SECONDS)
-            .takeWhileAsync(1, applicationServer -> {
-                ClientServer server = bridge.getClient()
-                    .retrieveServerByIdentifier(applicationServer.getIdentifier())
-                    .execute();
+        return CompletableFuture.supplyAsync(() -> {
+            return bridge.getApplication()
+                .retrieveServers()
+                .skipTo(Math.max(page, 1))
+                .limit(size)
+                .timeout(10, TimeUnit.SECONDS)
+                .execute();
+        }).thenApply(applicationServers -> {
+            return applicationServers.stream()
+                .map(server -> {
+                    Pair<String, String> addressAndNode = Servers.getAddressAndNode(server);
 
-                Utilization utilization = server.retrieveUtilization()
-                    .execute();
-
-                return utilization.getState() == UtilizationState.RUNNING;
-            }).thenApply(collection -> {
-                if (collection.isEmpty()) {
-                    return Collections.emptyList();
-                }
-
-                return collection.stream()
-                    .map(applicationServer -> {
-                        Pair<String, String> addressAndNode = Servers.getAddressAndNode(applicationServer);
-
-                        return new PteroServerImpl(
-                            bridge,
-                            applicationServer.getIdentifier(),
-                            addressAndNode.first(),
-                            addressAndNode.second(),
-                            applicationServer.getName(),
-                            applicationServer.getUUID()
-                        );
-                    }).collect(Collectors.toList());
-            });
+                    return new PteroServerImpl(
+                        bridge,
+                        server.getIdentifier(),
+                        addressAndNode.first(),
+                        addressAndNode.second(),
+                        server.getName(),
+                        server.getUUID()
+                    );
+                }).collect(Collectors.toList());
+        });
     }
 }

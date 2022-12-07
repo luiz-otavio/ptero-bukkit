@@ -87,6 +87,13 @@ public interface PteroServer {
     CompletableFuture<Void> start();
 
     /**
+     * Check if user can handle/watch the server.
+     * @param pteroUser The user that will check the state of the server.
+     * @return A future of the completable state.
+     */
+    CompletableFuture<Boolean> hasPermission(@NotNull PteroUser pteroUser);
+
+    /**
      * Execute the stop command of the server.
      * @return A future of the completable server.
      */
