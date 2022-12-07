@@ -102,7 +102,8 @@ public class PteroUserImpl implements PteroUser {
                     addressAndNode.first(),
                     addressAndNode.second(),
                     server.getName(),
-                    server.getUUID()
+                    server.getUUID(),
+                    null
                 );
 
                 pteroServers.add(targetServer);
