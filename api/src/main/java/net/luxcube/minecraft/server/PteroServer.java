@@ -4,6 +4,7 @@ import net.luxcube.minecraft.server.status.StatusType;
 import net.luxcube.minecraft.server.usage.ServerUsage;
 import net.luxcube.minecraft.user.PteroUser;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +25,13 @@ public interface PteroServer {
      */
     @NotNull
     String getIdentifier();
+
+    /**
+     * Retrieve the server based on the internal identifier.
+     * @return The server based on the internal identifier.
+     */
+    @Nullable
+    String getId();
 
     /**
      * Retrieve the name of the server.

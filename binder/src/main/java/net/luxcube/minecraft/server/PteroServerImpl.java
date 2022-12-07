@@ -16,6 +16,7 @@ import net.luxcube.minecraft.util.Pair;
 import net.luxcube.minecraft.util.Try;
 import net.luxcube.minecraft.vo.PteroBridgeVO;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -30,6 +31,7 @@ public class PteroServerImpl implements PteroServer {
     protected PteroBridgeVO bridge;
 
     private final String identifier;
+    private final String id;
     private final String address;
     private final String node;
     private final String name;
@@ -42,7 +44,8 @@ public class PteroServerImpl implements PteroServer {
         @NotNull String address,
         @NotNull String node,
         @NotNull String name,
-        @NotNull UUID uuid
+        @NotNull UUID uuid,
+        @Nullable String id
     ) {
         this.bridge = bridge;
         this.identifier = identifier;
@@ -50,11 +53,17 @@ public class PteroServerImpl implements PteroServer {
         this.node = node;
         this.name = name;
         this.uuid = uuid;
+        this.id = id;
     }
 
     @Override
     public @NotNull String getIdentifier() {
         return identifier;
+    }
+
+    @Override
+    public @Nullable String getId() {
+        return id;
     }
 
     @Override
@@ -178,7 +187,7 @@ public class PteroServerImpl implements PteroServer {
             server.getSubuserManager()
                 .editUser(user)
                 .setPermissions(permissions)
-                .executeAsync();
+                .execute(true);
 
             PteroLogger.debug("User %s now has permission to access server %s", pteroUser.getId(), identifier);
         });
@@ -226,7 +235,7 @@ public class PteroServerImpl implements PteroServer {
             server.getSubuserManager()
                 .editUser(user)
                 .setPermissions(permissions)
-                .executeAsync();
+                .execute(true);
 
             PteroLogger.debug("User %s now doesn't have permission to access server %s", pteroUser.getId(), identifier);
         });
@@ -250,7 +259,7 @@ public class PteroServerImpl implements PteroServer {
 
             catching.unwrap()
                 .start()
-                .execute();
+                .execute(true);
         }, bridge.getWorker());
     }
 
@@ -262,11 +271,9 @@ public class PteroServerImpl implements PteroServer {
                 .timeout(5, TimeUnit.SECONDS)
                 .execute();
         }).thenApply(clientServer -> {
-            boolean exists = clientServer.getSubusers()
+            return clientServer.getSubusers()
                 .stream()
                 .anyMatch(subUser -> subUser.getEmail().equals(pteroUser.getEmail()));
-
-            return exists;
         });
     }
 
@@ -288,7 +295,7 @@ public class PteroServerImpl implements PteroServer {
 
             catching.unwrap()
                 .stop()
-                .execute();
+                .execute(true);
         }, bridge.getWorker());
     }
 }

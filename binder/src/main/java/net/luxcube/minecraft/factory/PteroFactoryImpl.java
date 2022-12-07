@@ -96,23 +96,9 @@ public class PteroFactoryImpl implements PteroFactory {
             Node targetNode = bridge.getApplication()
                 .retrieveNodes()
                 .cache(false)
-                .takeWhileAsync(node -> !node.hasMaintanceMode())
-                .exceptionally(throwable -> {
-                    throw new InsufficientResourcesException();
-                })
-                .thenApply(collection -> {
-                    Optional<Node> optional = collection.stream()
-                        .min(NODE_COMPARATOR);
-
-                    if (optional.isPresent()) {
-                        return optional.get();
-                    }
-
-                    throw new InsufficientResourcesException();
-                }).join();
-
-            Location location = targetNode.retrieveLocation()
-                .execute();
+                .stream()
+                .min(NODE_COMPARATOR)
+                .orElseThrow(InsufficientResourcesException::new);
 
             Map<String, EnvironmentValue<?>> envMap = new HashMap<>();
 
@@ -132,14 +118,12 @@ public class PteroFactoryImpl implements PteroFactory {
                 .setOwner(account)
                 .setDescription(owner.getName() + "'s server")
                 .setEgg(targetEgg)
-                .setLocation(location)
                 .setAllocations(1)
                 .setCPU(cpu)
                 .setDockerImage(dockerImage)
                 .setMemory(memory, DataType.MB)
                 .setStartupCommand(startupCommand)
                 .setEnvironment(envMap)
-                .startOnCompletion(false)
                 .setDatabases(1)
                 .setDisk(disk, DataType.MB)
                 .execute();
@@ -154,9 +138,8 @@ public class PteroFactoryImpl implements PteroFactory {
                     .build();
             }
 
-
-            Allocation allocation = applicationServer.retrieveDefaultAllocation()
-                .execute();
+            // Remove unnecessary request
+            Allocation allocation = server.getPrimaryAllocation();
 
             return new PteroServerImpl(
                 bridge,
@@ -164,7 +147,8 @@ public class PteroFactoryImpl implements PteroFactory {
                 allocation.getFullAddress(),
                 targetNode.getName(),
                 name,
-                applicationServer.getUUID()
+                applicationServer.getUUID(),
+                applicationServer.getId()
             );
         });
     }

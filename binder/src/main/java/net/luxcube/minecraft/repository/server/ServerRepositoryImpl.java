@@ -1,9 +1,7 @@
 package net.luxcube.minecraft.repository.server;
 
-import com.mattmalec.pterodactyl4j.UtilizationState;
+import com.mattmalec.pterodactyl4j.ClientType;
 import com.mattmalec.pterodactyl4j.application.entities.ApplicationServer;
-import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
-import com.mattmalec.pterodactyl4j.client.entities.Utilization;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
 import net.luxcube.minecraft.exception.ServerDoesntExistException;
 import net.luxcube.minecraft.logger.PteroLogger;
@@ -15,9 +13,7 @@ import net.luxcube.minecraft.util.Try;
 import net.luxcube.minecraft.vo.PteroBridgeVO;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -32,38 +28,6 @@ public class ServerRepositoryImpl implements ServerRepository {
 
     public ServerRepositoryImpl(@NotNull PteroBridgeVO bridge) {
         this.bridge = bridge;
-    }
-
-    @Override
-    public CompletableFuture<PteroServer> findServerByUUID(@NotNull UUID uuid) {
-        PteroLogger.debug("Searching server by UUID: %s", uuid.toString());
-
-        return bridge.getApplication()
-            .retrieveServers()
-            .cache(true)
-            .timeout(10, TimeUnit.SECONDS)
-            .takeWhileAsync(1, server -> server.getUUID().equals(uuid))
-            .thenApply(collection -> {
-                if (collection.isEmpty()) {
-                    throw new ServerDoesntExistException(uuid.toString());
-                }
-
-                ApplicationServer any = collection.stream()
-                    .findAny()
-                    .orElseThrow();
-
-                Pair<String, String> addressAndNode = Servers.getAddressAndNode(any);
-
-                return new PteroServerImpl(
-                    bridge,
-                    any.getIdentifier(),
-                    addressAndNode.first(),
-                    addressAndNode.second(),
-                    any.getName(),
-                    any.getUUID()
-                );
-            });
-
     }
 
     @Override
@@ -91,7 +55,8 @@ public class ServerRepositoryImpl implements ServerRepository {
                 addressAndNode.first(),
                 addressAndNode.second(),
                 any.getName(),
-                any.getUUID()
+                any.getUUID(),
+                any.getId()
             );
         });
     }
@@ -119,46 +84,55 @@ public class ServerRepositoryImpl implements ServerRepository {
                 addressAndNode.first(),
                 addressAndNode.second(),
                 server.getName(),
-                server.getUUID()
+                server.getUUID(),
+                server.getId()
             );
         });
     }
 
     @Override
     public CompletableFuture<PteroServer> deleteServer(@NotNull PteroServer server) {
-        return bridge.getApplication()
-            .retrieveServers()
-            .cache(true)
-            .timeout(10, TimeUnit.SECONDS)
-            .takeWhileAsync(1, applicationServer -> applicationServer.getUUID().equals(server.getUUID()))
-            .thenApply(collection -> {
-                if (collection.isEmpty()) {
-                    throw new ServerDoesntExistException(server.getUUID().toString());
+        return CompletableFuture.supplyAsync(() -> {
+            Try<ApplicationServer> catching = Try.catching(() -> {
+                if (server.getId() == null) {
+                    return bridge.getApplication()
+                        .retrieveServersByName(server.getName(), true)
+                        .execute(true)
+                        .stream()
+                        .findAny()
+                        .orElseThrow();
                 }
 
-                ApplicationServer any = collection.stream()
-                    .findAny()
-                    .orElseThrow();
-
-                any.getController()
-                    .delete(true)
+                return bridge.getApplication()
+                    .retrieveServerById(server.getId())
                     .execute();
-
-                return server;
             });
+
+            catching.catching(Exception.class, e -> {
+                throw new ServerDoesntExistException(server.getName());
+            });
+
+            return catching.unwrap();
+        }, bridge.getWorker()).thenApply(applicationServer -> {
+            applicationServer.getController()
+                .delete(true)
+                .execute(true);
+
+            return server;
+        });
     }
 
     @Override
     public CompletableFuture<List<PteroServer>> retrieveServersByPage(int page, int size) {
         return CompletableFuture.supplyAsync(() -> {
-            return bridge.getApplication()
-                .retrieveServers()
+            return bridge.getClient()
+                .retrieveServers(ClientType.OWNER)
                 .skipTo(Math.max(page, 1))
                 .limit(size)
                 .timeout(10, TimeUnit.SECONDS)
                 .execute();
-        }).thenApply(applicationServers -> {
-            return applicationServers.stream()
+        }).thenApply(clientServers -> {
+            return clientServers.stream()
                 .map(server -> {
                     Pair<String, String> addressAndNode = Servers.getAddressAndNode(server);
 
@@ -168,7 +142,8 @@ public class ServerRepositoryImpl implements ServerRepository {
                         addressAndNode.first(),
                         addressAndNode.second(),
                         server.getName(),
-                        server.getUUID()
+                        server.getUUID(),
+                        null
                     );
                 }).collect(Collectors.toList());
         });

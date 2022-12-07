@@ -24,13 +24,6 @@ import java.util.concurrent.CompletableFuture;
 public interface ServerRepository {
 
     /**
-     * Looks up for a server based on the UUID.
-     * @param uuid The UUID of the server.
-     * @return A future of the completable server.
-     */
-    CompletableFuture<PteroServer> findServerByUUID(@NotNull UUID uuid);
-
-    /**
      * Looks up for a server based on the name.
      * @param name The name of the server.
      * @return A future of the completable server.
