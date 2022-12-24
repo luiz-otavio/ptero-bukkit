@@ -5,7 +5,7 @@ First, you need to include the repository in your `pom.xml` or `build.gradle`:
     <repository>
         <id>luiz-otavio</id>
         <!--You will need to include the credentials in somewhere-->
-        <url>https://maven.pkg.github.com/luiz-otavio/ptero-bukkit/url>
+        <url>https://maven.pkg.github.com/luiz-otavio/ptero-bukkit</url>
     </repository>
 </repositories>
 
