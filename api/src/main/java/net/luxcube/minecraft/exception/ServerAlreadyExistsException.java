@@ -9,6 +9,9 @@ package net.luxcube.minecraft.exception;
  **/
 public class ServerAlreadyExistsException extends RuntimeException {
 
+    public ServerAlreadyExistsException() {
+        super("The server already exists.");
+    }
     public ServerAlreadyExistsException(String message) {
         super(message);
     }

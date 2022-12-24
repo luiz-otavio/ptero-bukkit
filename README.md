@@ -5,7 +5,7 @@ First, you need to include the repository in your `pom.xml` or `build.gradle`:
     <repository>
         <id>luiz-otavio</id>
         <!--You will need to include the credentials in somewhere-->
-        <url>https://maven.pkg.github.com/luiz-otavio/ptero-mc-interface</url>
+        <url>https://maven.pkg.github.com/luiz-otavio/ptero-bukkit/url>
     </repository>
 </repositories>
 
@@ -28,7 +28,7 @@ First, you need to include the repository in your `pom.xml` or `build.gradle`:
 repositories {
     maven {
         name = "luiz-otavio"
-        url = "https://maven.pkg.github.com/luiz-otavio/ptero-mc-interface"
+        url = "https://maven.pkg.github.com/luiz-otavio/ptero-bukkit"
         credentials {
             username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
             password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")

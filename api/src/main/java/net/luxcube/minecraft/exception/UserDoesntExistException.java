@@ -9,6 +9,10 @@ package net.luxcube.minecraft.exception;
  **/
 public class UserDoesntExistException extends RuntimeException {
 
+    public UserDoesntExistException() {
+        super("The user does not exist.");
+    }
+
     public UserDoesntExistException(String message) {
         super(message);
     }

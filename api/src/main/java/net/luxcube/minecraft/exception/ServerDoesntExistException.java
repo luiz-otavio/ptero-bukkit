@@ -9,6 +9,10 @@ package net.luxcube.minecraft.exception;
  **/
 public class ServerDoesntExistException extends RuntimeException {
 
+    public ServerDoesntExistException() {
+        super("The server does not exist.");
+    }
+
     public ServerDoesntExistException(String message) {
         super(message);
     }

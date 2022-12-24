@@ -24,7 +24,7 @@ public class UserTest {
     public static void setup() {
         pteroManager = new PteroManagerImpl(
             "ptla_NZuGwOqmNT8BpCH4hT2LfYBkftWvE989aYhoDixZe2q",
-            "ptlc_wL9JEOo7b4pVUBRQFhpth8BR0fTIe7LEOd2y4wRjPpY",
+            "ptlc_fPK6UAWJwLuSbSteEng1dIhc2p4G5pVImrA0k9xuROH",
             "http://5.249.162.105",
             4
         );
@@ -86,11 +86,9 @@ public class UserTest {
     @Test
     public void deleteUser() {
         PteroUser pteroUser = pteroManager.getUserRepository()
-            .findUserByUsername("luxcube-user")
-            .exceptionally(throwable -> {
-                throwable.printStackTrace();
-                return null;
-            }).join();
+            .findUserByUsername("luiz-otavio")
+            .exceptionally(throwable -> null)
+            .join();
 
         assertNotNull(pteroUser, "User not found");
 
