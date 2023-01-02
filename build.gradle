@@ -22,7 +22,7 @@ subprojects {
 
         maven {
             name = "Github"
-            url = 'https://maven.pkg.github.com/luiz-otavio/ptero-mc-interface'
+            url = 'https://maven.pkg.github.com/luiz-otavio/ptero-bukkit'
 
             credentials {
                 username localProperties.get('github.username')
