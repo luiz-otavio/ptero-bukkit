@@ -121,6 +121,7 @@ public class PteroFactoryImpl implements PteroFactory {
                 .setDescription(owner.getName() + "'s server")
                 .setEgg(targetEgg)
                 .setAllocations(1)
+                .setBackups(1)
                 .setCPU(cpu)
                 .setDockerImage(dockerImage)
                 .setMemory(memory, DataType.MB)

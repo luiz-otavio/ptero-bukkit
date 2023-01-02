@@ -2,6 +2,9 @@ package net.luxcube.minecraft.listener;
 
 import com.mattmalec.pterodactyl4j.Permission;
 import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
+import com.mattmalec.pterodactyl4j.client.entities.Schedule;
+import com.mattmalec.pterodactyl4j.client.entities.impl.CronImpl;
+import com.mattmalec.pterodactyl4j.client.managers.ScheduleTaskManager;
 import com.mattmalec.pterodactyl4j.client.ws.events.install.InstallCompletedEvent;
 import com.mattmalec.pterodactyl4j.client.ws.hooks.ClientSocketListenerAdapter;
 import net.luxcube.minecraft.logger.PteroLogger;
@@ -20,7 +23,8 @@ public class ServerListener extends ClientSocketListenerAdapter {
         Permission.FILE_READ, Permission.FILE_DELETE, Permission.FILE_CREATE, Permission.FILE_ARCHIVE, Permission.FILE_READ_CONTENT, Permission.FILE_UPDATE,
         Permission.CONTROL_CONSOLE, Permission.CONTROL_RESTART, Permission.CONTROL_START, Permission.CONTROL_STOP,
         Permission.USER_CREATE, Permission.USER_READ, Permission.USER_DELETE, Permission.USER_UPDATE,
-        Permission.DATABASE_CREATE, Permission.DATABASE_READ, Permission.DATABASE_DELETE, Permission.DATABASE_UPDATE, Permission.DATABASE_VIEW_PASSWORD
+        Permission.DATABASE_CREATE, Permission.DATABASE_READ, Permission.DATABASE_DELETE, Permission.DATABASE_UPDATE, Permission.DATABASE_VIEW_PASSWORD,
+        Permission.BACKUP_DOWNLOAD, Permission.BACKUP_READ, Permission.BACKUP_RESTORE
     };
 
     private final PteroBridgeVO bridge;
@@ -47,6 +51,21 @@ public class ServerListener extends ClientSocketListenerAdapter {
                     PteroLogger.debug("User %s is already a subuser", email);
                     return;
                 }
+
+                clientServer.getScheduleManager()
+                    .createSchedule()
+                    .setActive(true)
+                    .setCron(CronImpl.ofExpression("0 0 * * MON"))
+                    .setName("Backup")
+                    .setWhenServerIsOnline(true)
+                        .executeAsync(schedule -> {
+                            ScheduleTaskManager scheduleTaskManager = schedule.getTaskManager();
+
+                            scheduleTaskManager.createTask()
+                                .setAction(Schedule.ScheduleTask.ScheduleAction.BACKUP)
+                                .setContinueOnFailure(false)
+                                .executeAsync();
+                        });
 
                 clientServer.getSubuserManager()
                     .createUser()
