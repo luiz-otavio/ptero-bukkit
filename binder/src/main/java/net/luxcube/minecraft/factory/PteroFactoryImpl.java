@@ -2,10 +2,7 @@ package net.luxcube.minecraft.factory;
 
 import com.mattmalec.pterodactyl4j.DataType;
 import com.mattmalec.pterodactyl4j.EnvironmentValue;
-import com.mattmalec.pterodactyl4j.application.entities.ApplicationEgg;
-import com.mattmalec.pterodactyl4j.application.entities.ApplicationServer;
-import com.mattmalec.pterodactyl4j.application.entities.ApplicationUser;
-import com.mattmalec.pterodactyl4j.application.entities.Node;
+import com.mattmalec.pterodactyl4j.application.entities.*;
 import com.mattmalec.pterodactyl4j.client.entities.Account;
 import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
 import com.mattmalec.pterodactyl4j.entities.Allocation;
@@ -114,6 +111,9 @@ public class PteroFactoryImpl implements PteroFactory {
                 .findAny()
                 .orElseThrow(() -> new EggDoesntExistException(egg));
 
+            Location location = targetNode.retrieveLocation()
+                .execute();
+
             ApplicationServer applicationServer = bridge.getApplication()
                 .createServer()
                 .setName(name)
@@ -121,6 +121,7 @@ public class PteroFactoryImpl implements PteroFactory {
                 .setDescription(owner.getName() + "'s server")
                 .setEgg(targetEgg)
                 .setAllocations(1)
+                .setLocation(location)
                 .setBackups(1)
                 .setCPU(cpu)
                 .setDockerImage(dockerImage)
@@ -150,8 +151,7 @@ public class PteroFactoryImpl implements PteroFactory {
                 allocation.getFullAddress(),
                 targetNode.getName(),
                 name,
-                applicationServer.getUUID(),
-                applicationServer.getId()
+                applicationServer.getUUID()
             );
         });
     }

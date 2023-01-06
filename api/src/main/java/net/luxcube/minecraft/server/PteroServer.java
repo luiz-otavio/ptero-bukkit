@@ -27,13 +27,6 @@ public interface PteroServer {
     String getIdentifier();
 
     /**
-     * Retrieve the server based on the internal identifier.
-     * @return The server based on the internal identifier.
-     */
-    @Nullable
-    String getId();
-
-    /**
      * Retrieve the name of the server.
      * @return The name of the server.
      */
