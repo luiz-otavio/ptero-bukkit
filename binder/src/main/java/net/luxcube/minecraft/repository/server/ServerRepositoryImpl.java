@@ -2,6 +2,7 @@ package net.luxcube.minecraft.repository.server;
 
 import com.mattmalec.pterodactyl4j.ClientType;
 import com.mattmalec.pterodactyl4j.application.entities.ApplicationServer;
+import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
 import net.luxcube.minecraft.exception.ServerDoesntExistException;
 import net.luxcube.minecraft.logger.PteroLogger;
@@ -35,7 +36,7 @@ public class ServerRepositoryImpl implements ServerRepository {
         PteroLogger.debug("Searching server by name: %s", name);
 
         return CompletableFuture.supplyAsync(() -> {
-            return bridge.getApplication()
+            return bridge.getClient()
                 .retrieveServersByName(name, true)
                 .execute();
         }, bridge.getWorker()).thenApply(collection -> {
@@ -43,7 +44,7 @@ public class ServerRepositoryImpl implements ServerRepository {
                 throw new ServerDoesntExistException(name);
             }
 
-            ApplicationServer any = collection.stream()
+            ClientServer any = collection.stream()
                 .findAny()
                 .orElseThrow();
 
@@ -55,8 +56,7 @@ public class ServerRepositoryImpl implements ServerRepository {
                 addressAndNode.first(),
                 addressAndNode.second(),
                 any.getName(),
-                any.getUUID(),
-                any.getId()
+                any.getUUID()
             );
         });
     }
@@ -84,8 +84,7 @@ public class ServerRepositoryImpl implements ServerRepository {
                 addressAndNode.first(),
                 addressAndNode.second(),
                 server.getName(),
-                server.getUUID(),
-                server.getId()
+                server.getUUID()
             );
         });
     }
@@ -94,18 +93,12 @@ public class ServerRepositoryImpl implements ServerRepository {
     public CompletableFuture<PteroServer> deleteServer(@NotNull PteroServer server) {
         return CompletableFuture.supplyAsync(() -> {
             Try<ApplicationServer> catching = Try.catching(() -> {
-                if (server.getId() == null) {
-                    return bridge.getApplication()
-                        .retrieveServersByName(server.getName(), true)
-                        .execute(true)
-                        .stream()
-                        .findAny()
-                        .orElseThrow();
-                }
-
                 return bridge.getApplication()
-                    .retrieveServerById(server.getId())
-                    .execute();
+                    .retrieveServersByName(server.getName(), true)
+                    .execute(true)
+                    .stream()
+                    .findAny()
+                    .orElseThrow();
             });
 
             catching.catching(Exception.class, e -> {
@@ -142,8 +135,7 @@ public class ServerRepositoryImpl implements ServerRepository {
                         addressAndNode.first(),
                         addressAndNode.second(),
                         server.getName(),
-                        server.getUUID(),
-                        null
+                        server.getUUID()
                     );
                 }).collect(Collectors.toList());
         });
