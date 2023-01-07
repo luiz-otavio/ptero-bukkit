@@ -38,26 +38,6 @@ public class PteroBridgeVO {
             }
         }
 
-        PteroApplication pteroApplication = PteroBuilder.createApplication(address.toString(), applicationKey);
-        try {
-            pteroApplication.retrieveNodes()
-                .timeout(10, TimeUnit.SECONDS)
-                .execute();
-        } catch (LoginException exception) {
-            PteroLogger.severe("Invalid application key: " + applicationKey, exception);
-            return null;
-        }
-
-        PteroClient pteroClient = PteroBuilder.createClient(address.toString(), clientKey);
-        try {
-            pteroClient.retrieveAccount()
-                .timeout(10, TimeUnit.SECONDS)
-                .execute();
-        } catch (LoginException exception) {
-            PteroLogger.severe("Invalid client key: " + clientKey, exception);
-            return null;
-        }
-
         if (nThreads < 1) {
             PteroLogger.severe("Invalid number of threads: " + nThreads);
             nThreads = 1;
@@ -73,7 +53,14 @@ public class PteroBridgeVO {
         );
 
         PteroLogger.debug("PteroBridge initialized with %d threads", nThreads);
-        return new PteroBridgeVO(address, clientKey, applicationKey, pteroApplication, pteroClient, executorService);
+        return new PteroBridgeVO(
+            address,
+            clientKey,
+            applicationKey,
+            PteroBuilder.createApplication(address.toString(), applicationKey),
+            PteroBuilder.createClient(address.toString(), clientKey),
+            executorService
+        );
     }
 
     private final PteroClient client;
