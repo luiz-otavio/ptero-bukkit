@@ -43,7 +43,7 @@ public class Servers {
         );
     }
 
-    private static String ensureAddress(@NotNull Allocation allocation) {
+    public static String ensureAddress(@NotNull Allocation allocation) {
         String address = allocation.getIP(),
             port = allocation.getPort();
 
