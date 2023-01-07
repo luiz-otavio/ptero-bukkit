@@ -19,6 +19,7 @@ import net.luxcube.minecraft.server.PteroServerImpl;
 import net.luxcube.minecraft.user.PteroUser;
 import net.luxcube.minecraft.user.PteroUserImpl;
 import net.luxcube.minecraft.util.LuxcubeThrowner;
+import net.luxcube.minecraft.util.Servers;
 import net.luxcube.minecraft.util.Try;
 import net.luxcube.minecraft.util.Users;
 import net.luxcube.minecraft.vo.PteroBridgeVO;
@@ -148,7 +149,7 @@ public class PteroFactoryImpl implements PteroFactory {
             return new PteroServerImpl(
                 bridge,
                 applicationServer.getIdentifier(),
-                allocation.getFullAddress(),
+                Servers.ensureAddress(allocation),
                 targetNode.getName(),
                 name,
                 applicationServer.getUUID()
