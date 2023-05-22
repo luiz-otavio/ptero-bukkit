@@ -11,10 +11,10 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Main repository to lookup for servers based on UUID, name or identifier.
  * The identifier can be understood as a snowflake, so it's a unique identifier
- *
+ * <p>
  * All methods of this interface are async, so you need to catch some specific exceptions such as:
- *  * {@link ServerDoesntExistException} - Thrown when the server does not exist when you are trying to lookup for a server.
- *
+ * * {@link ServerDoesntExistException} - Thrown when the server does not exist when you are trying to lookup for a server.
+ * <p>
  * You need to catch these exceptions because they are thrown when the future is completed exceptionally.
  * Otherwise, you can just use the {@link CompletableFuture#join()} method to get nullable values.
  *
@@ -25,6 +25,7 @@ public interface ServerRepository {
 
     /**
      * Looks up for a server based on the name.
+     *
      * @param name The name of the server.
      * @return A future of the completable server.
      */
@@ -32,6 +33,7 @@ public interface ServerRepository {
 
     /**
      * Looks up for a server based on the identifier.
+     *
      * @param snowflake The identifier of the server.
      * @return A future of the completable server.
      */
@@ -39,6 +41,7 @@ public interface ServerRepository {
 
     /**
      * Deletes the server from the pterodactyl.
+     *
      * @param server The server to be deleted.
      * @return A future of the completable server.
      */
@@ -46,8 +49,17 @@ public interface ServerRepository {
 
     /**
      * Lists all servers from the pterodactyl.
+     *
      * @return A future of the completable list of servers.
      */
     CompletableFuture<List<PteroServer>> retrieveServersByPage(int page, int size);
+
+    /**
+     * Looks up for a server based on the domain.
+     *
+     * @param domain The domain of the server.
+     * @return A future of the completable server.
+     */
+    CompletableFuture<PteroServer> retrieveServerByDomain(@NotNull String domain);
 
 }

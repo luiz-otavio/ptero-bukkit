@@ -63,6 +63,8 @@ public class ServerRepositoryImpl implements ServerRepository {
 
     @Override
     public CompletableFuture<PteroServer> findServerBySnowflake(@NotNull String snowflake) {
+        PteroLogger.debug("Searching server by snowflake: %s", snowflake);
+
         return CompletableFuture.supplyAsync(() -> {
             Try<ApplicationServer> catching = Try.catching(() -> {
                 return bridge.getApplication()
@@ -91,6 +93,8 @@ public class ServerRepositoryImpl implements ServerRepository {
 
     @Override
     public CompletableFuture<PteroServer> deleteServer(@NotNull PteroServer server) {
+        PteroLogger.debug("Deleting server: %s", server.getName());
+
         return CompletableFuture.supplyAsync(() -> {
             Try<ApplicationServer> catching = Try.catching(() -> {
                 return bridge.getApplication()
@@ -117,6 +121,8 @@ public class ServerRepositoryImpl implements ServerRepository {
 
     @Override
     public CompletableFuture<List<PteroServer>> retrieveServersByPage(int page, int size) {
+        PteroLogger.debug("Retrieving servers by page: %d, size: %d", page, size);
+
         return CompletableFuture.supplyAsync(() -> {
             return bridge.getClient()
                 .retrieveServers(ClientType.OWNER)
@@ -138,6 +144,36 @@ public class ServerRepositoryImpl implements ServerRepository {
                         server.getUUID()
                     );
                 }).collect(Collectors.toList());
+        });
+    }
+
+    @Override
+    public CompletableFuture<PteroServer> retrieveServerByDomain(@NotNull String domain) {
+        PteroLogger.debug("Retrieving server by domain: %s", domain);
+
+        return CompletableFuture.supplyAsync(() -> {
+            return bridge.getClient()
+                .retrieveServers(ClientType.OWNER)
+                .execute();
+        }).thenApply(clientServers -> {
+            return clientServers.stream()
+                .filter(server -> {
+                    return server.getPrimaryAllocation()
+                        .getAlias()
+                        .equals(domain);
+                }).map(server -> {
+                    Pair<String, String> addressAndNode = Servers.getAddressAndNode(server);
+
+                    return new PteroServerImpl(
+                        bridge,
+                        server.getIdentifier(),
+                        addressAndNode.first(),
+                        addressAndNode.second(),
+                        server.getName(),
+                        server.getUUID()
+                    );
+                }).findAny()
+                .orElseThrow(() -> new ServerDoesntExistException(domain));
         });
     }
 }
