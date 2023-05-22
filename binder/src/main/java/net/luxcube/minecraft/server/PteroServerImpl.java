@@ -8,6 +8,8 @@ import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
 import com.mattmalec.pterodactyl4j.exceptions.PteroException;
 import net.luxcube.minecraft.exception.ServerDoesntExistException;
 import net.luxcube.minecraft.logger.PteroLogger;
+import net.luxcube.minecraft.manager.ServerManager;
+import net.luxcube.minecraft.server.manager.ServerManagerImpl;
 import net.luxcube.minecraft.server.status.StatusType;
 import net.luxcube.minecraft.server.usage.ServerUsage;
 import net.luxcube.minecraft.server.usage.ServerUsageImpl;
@@ -16,7 +18,6 @@ import net.luxcube.minecraft.util.Pair;
 import net.luxcube.minecraft.util.Try;
 import net.luxcube.minecraft.vo.PteroBridgeVO;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -37,6 +38,8 @@ public class PteroServerImpl implements PteroServer {
 
     private final UUID uuid;
 
+    private final ServerManager manager;
+
     public PteroServerImpl(
         @NotNull PteroBridgeVO bridge,
         @NotNull String identifier,
@@ -51,6 +54,8 @@ public class PteroServerImpl implements PteroServer {
         this.node = node;
         this.name = name;
         this.uuid = uuid;
+
+        this.manager = new ServerManagerImpl(this, bridge);
     }
 
     @Override
@@ -76,6 +81,11 @@ public class PteroServerImpl implements PteroServer {
     @Override
     public @NotNull String getNode() {
         return node;
+    }
+
+    @Override
+    public ServerManager getManager() {
+        return manager;
     }
 
     @Override
@@ -187,6 +197,8 @@ public class PteroServerImpl implements PteroServer {
 
     @Override
     public CompletableFuture<Void> disallow(@NotNull PteroUser pteroUser) {
+        PteroLogger.debug("Disallowing user %s to access server %s", pteroUser.getId(), identifier);
+
         return CompletableFuture.supplyAsync(() -> {
             return bridge.getClient()
                 .retrieveServerByIdentifier(identifier)
@@ -257,6 +269,8 @@ public class PteroServerImpl implements PteroServer {
 
     @Override
     public CompletableFuture<Boolean> hasPermission(@NotNull PteroUser pteroUser) {
+        PteroLogger.debug("Checking if user %s has permission to access server %s", pteroUser.getId(), identifier);
+
         return CompletableFuture.supplyAsync(() -> {
             return bridge.getClient()
                 .retrieveServerByIdentifier(identifier)

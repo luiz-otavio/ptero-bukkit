@@ -1,5 +1,6 @@
 package net.luxcube.minecraft.server;
 
+import net.luxcube.minecraft.manager.ServerManager;
 import net.luxcube.minecraft.server.status.StatusType;
 import net.luxcube.minecraft.server.usage.ServerUsage;
 import net.luxcube.minecraft.user.PteroUser;
@@ -53,6 +54,12 @@ public interface PteroServer {
      */
     @NotNull
     String getNode();
+
+    /**
+     * Retrieve the manager of the server
+     * @return The manager of the server.
+     */
+    ServerManager getManager();
 
     /**
      * Retrieve the status of the server.
