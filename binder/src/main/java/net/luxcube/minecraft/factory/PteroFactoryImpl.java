@@ -31,12 +31,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * @author Luiz O. F. Corrêa
  * @since 02/11/2022
  **/
 public class PteroFactoryImpl implements PteroFactory {
+
+    private static final Pattern LETTERS_AND_NUMBERS = Pattern.compile("[^a-zA-Z0-9]");
+    private static final Pattern LOWERCASE_LETTERS_AND_NUMBERS = Pattern.compile("[^a-z0-9]");
 
     private static final LuxcubeThrowner ALREADY_EXISTS_THROWN = new LuxcubeThrowner<>(UserAlreadyExistsException::new);
 
@@ -115,9 +119,12 @@ public class PteroFactoryImpl implements PteroFactory {
             Location location = targetNode.retrieveLocation()
                 .execute();
 
+            String parsedName = LOWERCASE_LETTERS_AND_NUMBERS.matcher(name)
+                .replaceAll("");
+
             ApplicationServer applicationServer = bridge.getApplication()
                 .createServer()
-                .setName(name)
+                .setName(parsedName)
                 .setOwner(account)
                 .setDescription(owner.getName() + "'s server")
                 .setEgg(targetEgg)
@@ -190,13 +197,15 @@ public class PteroFactoryImpl implements PteroFactory {
 
             String fromShort = Users.fromShort(uuid);
 
+            String parsedName = LETTERS_AND_NUMBERS.matcher(fromShort)
+                .replaceAll("");
             Try<ApplicationUser> catching = Try.catching(() -> {
                 return bridge.getApplication()
                     .getUserManager()
                     .createUser()
                     .setPassword(password)
                     .setEmail(email == null ? String.format("%s@%s", username, "luxcube.net") : email)
-                    .setUserName(username)
+                    .setUserName(parsedName)
                     .setFirstName(fromShort)
                     .setLastName("'s Account")
                     .timeout(10, TimeUnit.SECONDS)
