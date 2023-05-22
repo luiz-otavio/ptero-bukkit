@@ -65,20 +65,16 @@ public class UserRepositoryImpl implements UserRepository {
         PteroLogger.debug("Searching for user by UUID: %s", uuid.toString());
 
         String fromShort = Users.fromShort(uuid);
-
         return CompletableFuture.supplyAsync(() -> {
             return bridge.getApplication()
                 .retrieveUsers()
                 .cache(true)
                 .timeout(10, TimeUnit.SECONDS)
                 .stream()
-                .filter(target -> target.getFirstName().startsWith(fromShort)).findAny()
+                .filter(target -> target.getFirstName().startsWith(fromShort))
+                .findAny()
                 .orElseThrow(() -> new UserDoesntExistException(uuid.toString()));
-        }, bridge.getWorker()).whenComplete((user, throwable) -> {
-            if (throwable != null) {
-                throwable.printStackTrace();
-            }
-        }).thenApply(user -> {
+        }, bridge.getWorker()).thenApply(user -> {
             return new PteroUserImpl(
                 bridge,
                 user.getId(),
