@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.mattmalec:Pterodactyl4J:2.BETA_139'
+    implementation 'com.mattmalec:Pterodactyl4J:2.BETA_140'
 
     implementation('org.slf4j:slf4j-api:2.0.5')
     runtimeOnly('org.slf4j:slf4j-simple:2.0.5')
