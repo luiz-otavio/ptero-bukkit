@@ -47,8 +47,13 @@ public class UserRepositoryImpl implements UserRepository {
             });
 
             return catching.unwrap()
-                .orElseThrow(() -> new UserDoesntExistException(username));
+                .orElse(null);
         }, bridge.getWorker()).thenApply(user -> {
+            if (user == null) {
+                throw new UserDoesntExistException(username);
+            }
+
+
             return new PteroUserImpl(
                 bridge,
                 user.getId(),
@@ -73,8 +78,12 @@ public class UserRepositoryImpl implements UserRepository {
                 .stream()
                 .filter(target -> target.getFirstName().startsWith(fromShort))
                 .findAny()
-                .orElseThrow(() -> new UserDoesntExistException(uuid.toString()));
+                .orElse(null);
         }, bridge.getWorker()).thenApply(user -> {
+            if (user == null) {
+                throw new UserDoesntExistException(uuid.toString());
+            }
+
             return new PteroUserImpl(
                 bridge,
                 user.getId(),
@@ -105,8 +114,12 @@ public class UserRepositoryImpl implements UserRepository {
             });
 
             return applicationUser.unwrap()
-                .orElseThrow(() -> new UserDoesntExistException(email));
+                .orElse(null);
         }, bridge.getWorker()).thenApply(user -> {
+            if (user == null) {
+                throw new UserDoesntExistException(email);
+            }
+
             return new PteroUserImpl(
                 bridge,
                 user.getId(),
@@ -166,8 +179,11 @@ public class UserRepositoryImpl implements UserRepository {
             });
 
             ApplicationUser applicationUser = catching.unwrap()
-                .orElseThrow(() -> new UserDoesntExistException(user.getName()));
+                .orElse(null);
 
+            if (applicationUser == null) {
+                throw new UserDoesntExistException(user.getName());
+            }
             bridge.getApplication()
                 .getUserManager()
                 .deleteUser(applicationUser)

@@ -1,8 +1,6 @@
 package net.luxcube.minecraft.user;
 
-import com.mattmalec.pterodactyl4j.ClientType;
 import com.mattmalec.pterodactyl4j.application.entities.ApplicationUser;
-import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
 import net.luxcube.minecraft.exception.UserDoesntExistException;
 import net.luxcube.minecraft.logger.PteroLogger;
@@ -15,9 +13,13 @@ import net.luxcube.minecraft.vo.PteroBridgeVO;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author Luiz O. F. Corrêa
@@ -80,37 +82,30 @@ public class PteroUserImpl implements PteroUser {
         PteroLogger.debug("Searching servers by user: %s", name);
 
         return CompletableFuture.supplyAsync(() -> {
-            return bridge.getClient()
-                .retrieveServers(ClientType.OWNER)
-                .cache(true)
-                .stream()
-                .takeWhile(server -> server.getSubusers()
-                    .stream()
-                    .anyMatch(subUser -> subUser.getEmail().equals(email))
-                ).toList();
+            return bridge.getApplication()
+                .retrieveServers()
+                .all()
+                .execute();
         }, bridge.getWorker()).thenApply(servers -> {
             if (servers.isEmpty()) {
                 return Collections.emptyList();
             }
 
+            return servers.stream()
+                .filter(server -> server.getOwnerId().equals(id))
+                .map(server -> {
+                    Pair<String, String> addressAndNode = Servers.getAddressAndNode(server);
 
-            List<PteroServer> pteroServers = new ArrayList<>(servers.size());
-            for (ClientServer server : servers) {
-                Pair<String, String> addressAndNode = Servers.getAddressAndNode(server);
-
-                PteroServer targetServer = new PteroServerImpl(
-                    bridge,
-                    server.getIdentifier(),
-                    addressAndNode.first(),
-                    addressAndNode.second(),
-                    server.getName(),
-                    server.getUUID()
-                );
-
-                pteroServers.add(targetServer);
-            }
-
-            return pteroServers;
+                    return new PteroServerImpl(
+                        bridge,
+                        server.getIdentifier(),
+                        server.getId(),
+                        addressAndNode.first(),
+                        addressAndNode.second(),
+                        server.getName(),
+                        server.getUUID()
+                    );
+                }).collect(Collectors.toUnmodifiableList());
         });
     }
 

@@ -32,6 +32,7 @@ public class PteroServerImpl implements PteroServer {
     protected PteroBridgeVO bridge;
 
     private final String identifier;
+    private final String internalId;
     private final String address;
     private final String node;
     private final String name;
@@ -43,6 +44,7 @@ public class PteroServerImpl implements PteroServer {
     public PteroServerImpl(
         @NotNull PteroBridgeVO bridge,
         @NotNull String identifier,
+        @NotNull String internalId,
         @NotNull String address,
         @NotNull String node,
         @NotNull String name,
@@ -51,6 +53,7 @@ public class PteroServerImpl implements PteroServer {
         this.bridge = bridge;
         this.identifier = identifier;
         this.address = address;
+        this.internalId = internalId;
         this.node = node;
         this.name = name;
         this.uuid = uuid;
@@ -61,6 +64,11 @@ public class PteroServerImpl implements PteroServer {
     @Override
     public @NotNull String getIdentifier() {
         return identifier;
+    }
+
+    @Override
+    public @NotNull String getInternalId() {
+        return internalId;
     }
 
     @Override
@@ -84,7 +92,7 @@ public class PteroServerImpl implements PteroServer {
     }
 
     @Override
-    public ServerManager getManager() {
+    public @NotNull ServerManager getManager() {
         return manager;
     }
 

@@ -32,6 +32,15 @@ public interface ServerManager {
     CompletableFuture<Void> setDisk(int disk);
 
     /**
+     * Set the cpu, ram and disk of the server
+     * @param cpu The cpu to be set
+     * @param ram  The ram to be set
+     * @param disk The disk to be set
+     * @return A future of the completable void.
+     */
+    CompletableFuture<Void> bulkResource(int cpu, int ram, int disk);
+
+    /**
      * Apply the domain to the server
      * @param domain The domain to be applied
      * @return A future of the completable boolean.

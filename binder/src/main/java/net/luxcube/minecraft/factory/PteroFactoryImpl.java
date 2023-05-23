@@ -40,8 +40,6 @@ import java.util.regex.Pattern;
 public class PteroFactoryImpl implements PteroFactory {
 
     private static final Pattern LETTERS_AND_NUMBERS = Pattern.compile("[^a-zA-Z0-9]");
-    private static final Pattern LOWERCASE_LETTERS_AND_NUMBERS = Pattern.compile("[^a-z0-9]");
-
     private static final LuxcubeThrowner ALREADY_EXISTS_THROWN = new LuxcubeThrowner<>(UserAlreadyExistsException::new);
 
     public static final NodeComparator NODE_COMPARATOR = new NodeComparator();
@@ -119,16 +117,13 @@ public class PteroFactoryImpl implements PteroFactory {
             Location location = targetNode.retrieveLocation()
                 .execute();
 
-            String parsedName = LOWERCASE_LETTERS_AND_NUMBERS.matcher(name)
-                .replaceAll("");
-
             ApplicationServer applicationServer = bridge.getApplication()
                 .createServer()
-                .setName(parsedName)
+                .setName(name)
                 .setOwner(account)
                 .setDescription(owner.getName() + "'s server")
                 .setEgg(targetEgg)
-                .setAllocations(1)
+                .setAllocations(3)
                 .setLocation(location)
                 .setBackups(1)
                 .setCPU(cpu)
@@ -156,6 +151,7 @@ public class PteroFactoryImpl implements PteroFactory {
             return new PteroServerImpl(
                 bridge,
                 applicationServer.getIdentifier(),
+                applicationServer.getId(),
                 Servers.ensureAddress(allocation),
                 targetNode.getName(),
                 name,

@@ -28,6 +28,13 @@ public interface PteroServer {
     String getIdentifier();
 
     /**
+     * Retrieve the internal id of the server.
+     * @return The internal id of the server.
+     */
+    @NotNull
+    String getInternalId();
+
+    /**
      * Retrieve the name of the server.
      * @return The name of the server.
      */
@@ -59,6 +66,7 @@ public interface PteroServer {
      * Retrieve the manager of the server
      * @return The manager of the server.
      */
+    @NotNull
     ServerManager getManager();
 
     /**
