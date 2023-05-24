@@ -35,7 +35,7 @@ public class PteroServerImpl implements PteroServer {
     private final String internalId;
     private final String address;
     private final String node;
-    private final String name;
+    private String name;
 
     private final UUID uuid;
 
@@ -155,6 +155,31 @@ public class PteroServerImpl implements PteroServer {
                 Math.max(0, (int) utilization.getCPU()),
                 Math.max(0, (int) utilization.getDisk())
             );
+        });
+    }
+
+    @Override
+    public CompletableFuture<Void> changeName(@NotNull String name) {
+        PteroLogger.debug("Changing name of server %s to %s", identifier, name);
+
+        return CompletableFuture.supplyAsync(() -> {
+            Try<ClientServer> catching = Try.catching(() -> {
+                return bridge.getClient()
+                    .retrieveServerByIdentifier(identifier)
+                    .execute();
+            });
+
+            catching.catching(NotFoundException.class, e -> {
+                throw new ServerDoesntExistException(identifier);
+            });
+
+            return catching.unwrap();
+        }, bridge.getWorker()).thenAccept(clientServer -> {
+            clientServer.getManager()
+                .setName(name)
+                .execute();
+
+            this.name = name;
         });
     }
 

@@ -83,6 +83,13 @@ public interface PteroServer {
     CompletableFuture<ServerUsage> getUsage();
 
     /**
+     * Change the name of the server.
+     * @param name The new name of the server.
+     * @return A future of the completable server.
+     */
+    CompletableFuture<Void> changeName(@NotNull String name);
+
+    /**
      * Allow the user to change the state of the server.
      * @param pteroUser The user that will change the state of the server.
      * @return A future of the completable state.
