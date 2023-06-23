@@ -84,5 +84,7 @@ public class ServerListener extends ClientSocketListenerAdapter {
                 PteroLogger.severe("Failed to retrieve server by identifier: " + clientServer.getIdentifier(), throwable);
             });
 
+        clientServer.getWebSocketBuilder()
+            .removeEventListeners(this);
     }
 }
