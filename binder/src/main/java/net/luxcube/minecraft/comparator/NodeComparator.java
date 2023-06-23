@@ -1,7 +1,7 @@
 package net.luxcube.minecraft.comparator;
 
 import com.mattmalec.pterodactyl4j.application.entities.Node;
-import com.mattmalec.pterodactyl4j.entities.Limit;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
@@ -11,65 +11,53 @@ import java.util.Comparator;
  **/
 public class NodeComparator implements Comparator<Node> {
 
+    private static final int MINIMAL_MEMORY = 2048;
+
     @Override
     public int compare(Node o1, Node o2) {
-        int o1Memory, o2Memory;
-
-        try {
-            o2Memory = Integer.parseInt(o2.getMemory());
-        } catch (NumberFormatException e) {
-            o2Memory = 0;
+        // Skip nodes with maintenance mode
+        if (o1.hasMaintanceMode()) {
+            return 1;
+        } else if (o2.hasMaintanceMode()) {
+            return -1;
         }
 
-        try {
-            o1Memory = Integer.parseInt(o1.getMemory());
-        } catch (NumberFormatException e) {
-            o1Memory = 0;
+        long o1UsedMemory = getUnusedMemory(o1),
+            o2UsedMemory = getUnusedMemory(o2);
+
+        // Check if allocated memory isn't already full
+        if (o1UsedMemory < MINIMAL_MEMORY) {
+            if (o2UsedMemory < MINIMAL_MEMORY) {
+                // Both nodes have enough memory
+                return Long.compare(o1UsedMemory, o2UsedMemory);
+            } else {
+                // o1 has enough memory, but o2 doesn't
+                return -1;
+            }
+        } else if (o2UsedMemory < MINIMAL_MEMORY) {
+            // o2 has enough memory, but o1 doesn't
+            return 1;
         }
 
-        // Let's sum the memory of all o1's servers
-        int o1Sum = o1.retrieveServers()
-            .map(collection -> {
-                int memory = 0;
+        // Retrieve the less node usage
+        return Long.compare(o1UsedMemory, o2UsedMemory);
+    }
 
-                for (var server : collection) {
-                    Limit limit = server.getLimits();
+    private long getUnusedMemory(@NotNull Node node) {
+        long maxMemory;
+        try {
+            maxMemory = Long.parseLong(node.getMemory());
+        } catch (@NotNull Exception e) {
+            maxMemory = Long.MAX_VALUE;
+        }
 
-                    int serverMemory;
-                    try {
-                        serverMemory = Integer.parseInt(limit.getMemory());
-                    } catch (NumberFormatException e) {
-                        serverMemory = 0;
-                    }
+        long usedMemory;
+        try {
+            usedMemory = Long.parseLong(node.getMemoryOverallocate());
+        } catch (@NotNull Exception e) {
+            usedMemory = Long.MAX_VALUE;
+        }
 
-                    memory += serverMemory;
-                }
-
-                return memory;
-            }).execute();
-
-        // Let's sum the memory of all o2's servers
-        int o2Sum = o2.retrieveServers()
-            .map(collection -> {
-                int memory = 0;
-
-                for (var server : collection) {
-                    Limit limit = server.getLimits();
-
-                    int serverMemory;
-                    try {
-                        serverMemory = Integer.parseInt(limit.getMemory());
-                    } catch (NumberFormatException e) {
-                        serverMemory = 0;
-                    }
-
-                    memory += serverMemory;
-                }
-
-                return memory;
-            }).execute();
-
-        // Let's compare the memory of all o1's servers with the memory of all o2's servers
-        return Integer.compare(o1Sum, o2Sum);
+        return maxMemory - usedMemory;
     }
 }

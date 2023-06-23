@@ -1,11 +1,9 @@
 package net.luxcube.minecraft.user;
 
-import com.mattmalec.pterodactyl4j.ClientType;
-import com.mattmalec.pterodactyl4j.application.entities.ApplicationServer;
 import com.mattmalec.pterodactyl4j.application.entities.ApplicationUser;
-import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
 import net.luxcube.minecraft.exception.UserDoesntExistException;
+import net.luxcube.minecraft.logger.PteroLogger;
 import net.luxcube.minecraft.server.PteroServer;
 import net.luxcube.minecraft.server.PteroServerImpl;
 import net.luxcube.minecraft.util.Pair;
@@ -15,7 +13,10 @@ import net.luxcube.minecraft.vo.PteroBridgeVO;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -78,42 +79,40 @@ public class PteroUserImpl implements PteroUser {
 
     @Override
     public @NotNull CompletableFuture<List<PteroServer>> getServers() {
+        PteroLogger.debug("Searching servers by user: %s", name);
+
         return CompletableFuture.supplyAsync(() -> {
-            return bridge.getClient()
-                .retrieveServers(ClientType.OWNER)
-                .cache(true)
-                .stream()
-                .takeWhile(server -> server.getSubusers()
-                    .stream()
-                    .anyMatch(subUser -> subUser.getEmail().equals(email))
-                ).toList();
+            return bridge.getApplication()
+                .retrieveServers()
+                .all()
+                .execute();
         }, bridge.getWorker()).thenApply(servers -> {
             if (servers.isEmpty()) {
                 return Collections.emptyList();
             }
 
-            List<PteroServer> pteroServers = new ArrayList<>(servers.size());
-            for (ClientServer server : servers) {
-                Pair<String, String> addressAndNode = Servers.getAddressAndNode(server);
+            return servers.stream()
+                .filter(server -> server.getOwnerId().equals(id))
+                .map(server -> {
+                    Pair<String, String> addressAndNode = Servers.getAddressAndNode(server);
 
-                PteroServer targetServer = new PteroServerImpl(
-                    bridge,
-                    server.getIdentifier(),
-                    addressAndNode.first(),
-                    addressAndNode.second(),
-                    server.getName(),
-                    server.getUUID()
-                );
-
-                pteroServers.add(targetServer);
-            }
-
-            return pteroServers;
+                    return new PteroServerImpl(
+                        bridge,
+                        server.getIdentifier(),
+                        server.getId(),
+                        addressAndNode.first(),
+                        addressAndNode.second(),
+                        server.getName(),
+                        server.getUUID()
+                    );
+                }).collect(Collectors.toUnmodifiableList());
         });
     }
 
     @Override
     public CompletableFuture<Void> setName(@NotNull String name) {
+        PteroLogger.debug("Setting user name: %s", name);
+
         return CompletableFuture.runAsync(() -> {
             Try<Optional<ApplicationUser>> catching = Try.catching(() -> {
                 return bridge.getApplication()
@@ -138,6 +137,8 @@ public class PteroUserImpl implements PteroUser {
 
     @Override
     public CompletableFuture<Void> setEmail(@NotNull String email) {
+        PteroLogger.debug("Setting user email: %s", email);
+
         return CompletableFuture.runAsync(() -> {
             Try<Optional<ApplicationUser>> catching = Try.catching(() -> {
                 return bridge.getApplication()
@@ -162,6 +163,8 @@ public class PteroUserImpl implements PteroUser {
 
     @Override
     public CompletableFuture<Void> setPassword(@NotNull String password) {
+        PteroLogger.debug("Setting user password: %s", password);
+
         return CompletableFuture.runAsync(() -> {
             Try<Optional<ApplicationUser>> catching = Try.catching(() -> {
                 return bridge.getApplication()

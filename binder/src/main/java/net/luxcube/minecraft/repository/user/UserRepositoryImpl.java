@@ -47,8 +47,13 @@ public class UserRepositoryImpl implements UserRepository {
             });
 
             return catching.unwrap()
-                .orElseThrow(() -> new UserDoesntExistException(username));
+                .orElse(null);
         }, bridge.getWorker()).thenApply(user -> {
+            if (user == null) {
+                throw new UserDoesntExistException(username);
+            }
+
+
             return new PteroUserImpl(
                 bridge,
                 user.getId(),
@@ -65,20 +70,20 @@ public class UserRepositoryImpl implements UserRepository {
         PteroLogger.debug("Searching for user by UUID: %s", uuid.toString());
 
         String fromShort = Users.fromShort(uuid);
-
         return CompletableFuture.supplyAsync(() -> {
             return bridge.getApplication()
                 .retrieveUsers()
                 .cache(true)
                 .timeout(10, TimeUnit.SECONDS)
                 .stream()
-                .filter(target -> target.getFirstName().startsWith(fromShort)).findAny()
-                .orElseThrow(() -> new UserDoesntExistException(uuid.toString()));
-        }, bridge.getWorker()).whenComplete((user, throwable) -> {
-            if (throwable != null) {
-                throwable.printStackTrace();
+                .filter(target -> target.getFirstName().startsWith(fromShort))
+                .findAny()
+                .orElse(null);
+        }, bridge.getWorker()).thenApply(user -> {
+            if (user == null) {
+                throw new UserDoesntExistException(uuid.toString());
             }
-        }).thenApply(user -> {
+
             return new PteroUserImpl(
                 bridge,
                 user.getId(),
@@ -109,8 +114,12 @@ public class UserRepositoryImpl implements UserRepository {
             });
 
             return applicationUser.unwrap()
-                .orElseThrow(() -> new UserDoesntExistException(email));
+                .orElse(null);
         }, bridge.getWorker()).thenApply(user -> {
+            if (user == null) {
+                throw new UserDoesntExistException(email);
+            }
+
             return new PteroUserImpl(
                 bridge,
                 user.getId(),
@@ -170,8 +179,11 @@ public class UserRepositoryImpl implements UserRepository {
             });
 
             ApplicationUser applicationUser = catching.unwrap()
-                .orElseThrow(() -> new UserDoesntExistException(user.getName()));
+                .orElse(null);
 
+            if (applicationUser == null) {
+                throw new UserDoesntExistException(user.getName());
+            }
             bridge.getApplication()
                 .getUserManager()
                 .deleteUser(applicationUser)

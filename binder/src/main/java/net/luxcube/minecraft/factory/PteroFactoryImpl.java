@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * @author Luiz O. F. Corrêa
@@ -38,6 +39,7 @@ import java.util.concurrent.TimeUnit;
  **/
 public class PteroFactoryImpl implements PteroFactory {
 
+    private static final Pattern LETTERS_AND_NUMBERS = Pattern.compile("[^a-zA-Z0-9]");
     private static final LuxcubeThrowner ALREADY_EXISTS_THROWN = new LuxcubeThrowner<>(UserAlreadyExistsException::new);
 
     public static final NodeComparator NODE_COMPARATOR = new NodeComparator();
@@ -121,7 +123,7 @@ public class PteroFactoryImpl implements PteroFactory {
                 .setOwner(account)
                 .setDescription(owner.getName() + "'s server")
                 .setEgg(targetEgg)
-                .setAllocations(1)
+                .setAllocations(3)
                 .setLocation(location)
                 .setBackups(1)
                 .setCPU(cpu)
@@ -149,6 +151,7 @@ public class PteroFactoryImpl implements PteroFactory {
             return new PteroServerImpl(
                 bridge,
                 applicationServer.getIdentifier(),
+                applicationServer.getId(),
                 Servers.ensureAddress(allocation),
                 targetNode.getName(),
                 name,
@@ -190,13 +193,15 @@ public class PteroFactoryImpl implements PteroFactory {
 
             String fromShort = Users.fromShort(uuid);
 
+            String parsedName = LETTERS_AND_NUMBERS.matcher(fromShort)
+                .replaceAll("");
             Try<ApplicationUser> catching = Try.catching(() -> {
                 return bridge.getApplication()
                     .getUserManager()
                     .createUser()
                     .setPassword(password)
                     .setEmail(email == null ? String.format("%s@%s", username, "luxcube.net") : email)
-                    .setUserName(username)
+                    .setUserName(parsedName)
                     .setFirstName(fromShort)
                     .setLastName("'s Account")
                     .timeout(10, TimeUnit.SECONDS)

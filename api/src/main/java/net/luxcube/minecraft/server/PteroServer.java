@@ -1,5 +1,6 @@
 package net.luxcube.minecraft.server;
 
+import net.luxcube.minecraft.manager.ServerManager;
 import net.luxcube.minecraft.server.status.StatusType;
 import net.luxcube.minecraft.server.usage.ServerUsage;
 import net.luxcube.minecraft.user.PteroUser;
@@ -25,6 +26,13 @@ public interface PteroServer {
      */
     @NotNull
     String getIdentifier();
+
+    /**
+     * Retrieve the internal id of the server.
+     * @return The internal id of the server.
+     */
+    @NotNull
+    String getInternalId();
 
     /**
      * Retrieve the name of the server.
@@ -55,6 +63,13 @@ public interface PteroServer {
     String getNode();
 
     /**
+     * Retrieve the manager of the server
+     * @return The manager of the server.
+     */
+    @NotNull
+    ServerManager getManager();
+
+    /**
      * Retrieve the status of the server.
      * @return A future of the completable status.
      */
@@ -66,6 +81,13 @@ public interface PteroServer {
      * @return A future of the completable usage.
      */
     CompletableFuture<ServerUsage> getUsage();
+
+    /**
+     * Change the name of the server.
+     * @param name The new name of the server.
+     * @return A future of the completable server.
+     */
+    CompletableFuture<Void> changeName(@NotNull String name);
 
     /**
      * Allow the user to change the state of the server.

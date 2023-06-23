@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class ServerListener extends ClientSocketListenerAdapter {
 
     public static final Permission[] USER_PERMISSIONS = {
-        Permission.FILE_READ, Permission.FILE_DELETE, Permission.FILE_CREATE, Permission.FILE_ARCHIVE, Permission.FILE_READ_CONTENT, Permission.FILE_UPDATE,
+        Permission.FILE_SFTP,
         Permission.CONTROL_CONSOLE, Permission.CONTROL_RESTART, Permission.CONTROL_START, Permission.CONTROL_STOP,
         Permission.USER_CREATE, Permission.USER_READ, Permission.USER_DELETE, Permission.USER_UPDATE,
         Permission.DATABASE_CREATE, Permission.DATABASE_READ, Permission.DATABASE_DELETE, Permission.DATABASE_UPDATE, Permission.DATABASE_VIEW_PASSWORD,
@@ -84,5 +84,7 @@ public class ServerListener extends ClientSocketListenerAdapter {
                 PteroLogger.severe("Failed to retrieve server by identifier: " + clientServer.getIdentifier(), throwable);
             });
 
+        clientServer.getWebSocketBuilder()
+            .removeEventListeners(this);
     }
 }

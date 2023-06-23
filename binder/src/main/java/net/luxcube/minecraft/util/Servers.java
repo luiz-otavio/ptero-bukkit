@@ -16,9 +16,6 @@ import java.util.concurrent.TimeUnit;
  **/
 public class Servers {
 
-    private static final String LOCAL_IP = "127.0.0.1";
-    private static final String PUBLIC_IP = "0.0.0.0";
-
     @Blocking
     public static Pair<String, String> getAddressAndNode(@NotNull ApplicationServer applicationServer) {
         ApplicationAllocation allocation = applicationServer.retrieveDefaultAllocation()
@@ -47,7 +44,7 @@ public class Servers {
         String address = allocation.getIP(),
             port = allocation.getPort();
 
-        if (address.equalsIgnoreCase(LOCAL_IP) || address.equalsIgnoreCase(PUBLIC_IP)) {
+        if (allocation.getAlias() != null) {
             address = allocation.getAlias();
         }
 

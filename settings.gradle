@@ -4,4 +4,5 @@ include 'test'
 include 'bukkit'
 include 'api'
 include 'binder'
+include 'bungee'
 
