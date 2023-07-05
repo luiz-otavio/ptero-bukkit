@@ -23,7 +23,7 @@ public class PteroLogger {
         LOGGER.error(message);
     }
 
-    public static void severe(String message, Object...  args) {
+    public static void severe(String message, Object... args) {
         LOGGER.error(message, args);
     }
 

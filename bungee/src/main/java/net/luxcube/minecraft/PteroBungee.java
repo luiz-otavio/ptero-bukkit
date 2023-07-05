@@ -10,10 +10,11 @@ public class PteroBungee {
 
     /**
      * Registers the PteroManager service.
-     * @param url The URL of the Pterodactyl panel.
+     *
+     * @param url            The URL of the Pterodactyl panel.
      * @param applicationKey The application key of the Pterodactyl panel.
-     * @param clientKey The client key of the Pterodactyl panel.
-     * @param nThreads The number of threads to be used.
+     * @param clientKey      The client key of the Pterodactyl panel.
+     * @param nThreads       The number of threads to be used.
      * @return The PteroManager service.
      * @throws IllegalArgumentException If nThreads is less than or equal to 0 or if the plugin is null.
      */

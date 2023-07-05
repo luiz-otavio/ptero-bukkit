@@ -20,6 +20,7 @@ public interface PteroUser {
 
     /**
      * Retrieve the identifier of the user.
+     *
      * @return The identifier of the user.
      */
     @NotNull
@@ -27,12 +28,14 @@ public interface PteroUser {
 
     /**
      * Retrieve the UUID of the user.
+     *
      * @return The UUID of the user or nil.
      */
     @Nullable UUID getUniqueId();
 
     /**
      * Retrieve the username of the user.
+     *
      * @return The username of the user.
      */
     @NotNull
@@ -40,6 +43,7 @@ public interface PteroUser {
 
     /**
      * Retrieve the email of the user.
+     *
      * @return The email of the user.
      */
     @NotNull
@@ -47,12 +51,14 @@ public interface PteroUser {
 
     /**
      * Retrieve the password of the user.
+     *
      * @return The password of the user or nil.
      */
     @Nullable String getPassword();
 
     /**
      * Retrieve the collection of servers of the user.
+     *
      * @return A future of the completable collection of servers.
      */
     @NotNull
@@ -60,6 +66,7 @@ public interface PteroUser {
 
     /**
      * Update the name of the user.
+     *
      * @param name The new name of the user.
      * @return A future of the completable user.
      */
@@ -67,6 +74,7 @@ public interface PteroUser {
 
     /**
      * Update the email of the user.
+     *
      * @param email The new email of the user.
      * @return A future of the completable user.
      */
@@ -74,6 +82,7 @@ public interface PteroUser {
 
     /**
      * Update the password of the user.
+     *
      * @param password The new password of the user.
      * @return A future of the completable user.
      */

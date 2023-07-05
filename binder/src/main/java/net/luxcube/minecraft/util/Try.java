@@ -3,6 +3,7 @@ package net.luxcube.minecraft.util;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,27 +23,25 @@ public interface Try<A> {
      * Returns a new [Try<B>] with the result of applying the given function to the successful
      * result of unwrapped [A].
      *
-     * @param f the function to apply to the successful result of unwrapped [A]
-     * @return a new [Try<B>] with the result of applying the given function to the successful
-     *     result
+     * @param f   the function to apply to the successful result of unwrapped [A]
      * @param <B> the type of the result of the function
+     * @return a new [Try<B>] with the result of applying the given function to the successful
+     * result
      */
-    @NotNull
-    <B> Try<B> flatMap(@NotNull final Function<A, @NotNull Try<B>> f);
+    @NotNull <B> Try<B> flatMap(@NotNull final Function<A, @NotNull Try<B>> f);
 
     /**
      * Returns a new [Try<A>] with the result of applying the given function to the successful
      * result, if throws an error, returns a new [Try<A>] with the error.
      *
      * @param kind the kind of error to catch
-     * @param f the function to apply to consume the error
+     * @param f    the function to apply to consume the error
+     * @param <E>  the type of the error
      * @return a new [Try<A>] with the result of applying the given function to the successful
-     *     result
-     * @param <E> the type of the error
+     * result
      */
-    @NotNull
-    <E extends Exception> Try<A> catching(
-            @NotNull final Class<E> kind, @NotNull final Consumer<E> f);
+    @NotNull <E extends Exception> Try<A> catching(
+        @NotNull final Class<E> kind, @NotNull final Consumer<E> f);
 
     /**
      * Unwraps this [Try].
@@ -56,10 +55,10 @@ public interface Try<A> {
      * Returns a new [Try<B>] with the result of applying the given function to the successful
      * result.
      *
-     * @param f the function to apply to the successful result of unwrapped [A]
-     * @return a new [Try<B>] with the result of applying the given function to the successful
-     *     result
+     * @param f   the function to apply to the successful result of unwrapped [A]
      * @param <B> the type of the result of the function
+     * @return a new [Try<B>] with the result of applying the given function to the successful
+     * result
      */
     @NotNull
     default <B> Try<B> map(@NotNull final Function<A, B> f) {
@@ -75,18 +74,18 @@ public interface Try<A> {
     @NotNull
     default Try<A> onEach(@NotNull final Consumer<A> f) {
         return map(
-                a -> {
-                    f.accept(a);
-                    return a;
-                });
+            a -> {
+                f.accept(a);
+                return a;
+            });
     }
 
     /**
      * Returns a new [Try<A>] catching exceptions from [supplier].
      *
      * @param supplier the supplier to get the value of [Try<A>]
+     * @param <A>      the type of the value of [Try<A>]
      * @return a new [Try<A>] catching exceptions from [supplier]
-     * @param <A> the type of the value of [Try<A>]
      */
     @Contract("_ -> new")
     @NotNull
@@ -108,19 +107,19 @@ public interface Try<A> {
     @NotNull
     static Try<Void> catchingVoid(@NotNull final Runnable runnable) {
         return Try.catching(
-                () -> {
-                    runnable.run();
+            () -> {
+                runnable.run();
 
-                    return null;
-                });
+                return null;
+            });
     }
 
     /**
      * Returns a new successful [Try<A>].
      *
-     * @param a the value of the successful [Try<A>]
-     * @return a new successful [Try<A>]
+     * @param a   the value of the successful [Try<A>]
      * @param <A> the type of the value of the successful [Try<A>]
+     * @return a new successful [Try<A>]
      */
     @Contract("_ -> new")
     @NotNull
@@ -131,10 +130,10 @@ public interface Try<A> {
     /**
      * Returns a new failed [Try<A>].
      *
-     * @param e the exception from failed [Try<A>]
-     * @return a new failed [Try<A>]
+     * @param e   the exception from failed [Try<A>]
      * @param <A> the type of the value of [Try<A>]
      * @param <E> the type of the exception from failed [Try<A>]
+     * @return a new failed [Try<A>]
      */
     @Contract("_ -> new")
     @NotNull
@@ -148,7 +147,7 @@ record Success<A>(A a) implements Try<A> {
     @Override
     @NotNull
     public <E extends Exception> Try<A> catching(
-            @NotNull final Class<E> kind, @NotNull final Consumer<E> f) {
+        @NotNull final Class<E> kind, @NotNull final Consumer<E> f) {
         return this;
     }
 
@@ -170,7 +169,7 @@ record Fail<A>(@NotNull Exception exception) implements Try<A> {
     @Override
     @NotNull
     public <E extends Exception> Try<A> catching(
-            @NotNull final Class<E> kind, @NotNull final Consumer<E> f) {
+        @NotNull final Class<E> kind, @NotNull final Consumer<E> f) {
         if (!kind.isInstance(exception)) return this;
 
         try {
@@ -195,7 +194,7 @@ record Fail<A>(@NotNull Exception exception) implements Try<A> {
     @NotNull
     public A unwrap() {
         throw exception instanceof RuntimeException exception
-                ? exception
-                : new RuntimeException(exception);
+            ? exception
+            : new RuntimeException(exception);
     }
 }

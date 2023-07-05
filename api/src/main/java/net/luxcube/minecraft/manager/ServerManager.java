@@ -12,6 +12,7 @@ public interface ServerManager {
 
     /**
      * Set the cpu of the server
+     *
      * @param cpu The cpu to be set
      * @return A future of the completable void.
      */
@@ -19,6 +20,7 @@ public interface ServerManager {
 
     /**
      * Set the ram of the server
+     *
      * @param ram The ram to be set
      * @return A future of the completable void.
      */
@@ -26,6 +28,7 @@ public interface ServerManager {
 
     /**
      * Set the disk of the server
+     *
      * @param disk The disk to be set
      * @return A future of the completable void.
      */
@@ -33,7 +36,8 @@ public interface ServerManager {
 
     /**
      * Set the cpu, ram and disk of the server
-     * @param cpu The cpu to be set
+     *
+     * @param cpu  The cpu to be set
      * @param ram  The ram to be set
      * @param disk The disk to be set
      * @return A future of the completable void.
@@ -42,6 +46,7 @@ public interface ServerManager {
 
     /**
      * Apply the domain to the server
+     *
      * @param domain The domain to be applied
      * @return A future of the completable boolean.
      */

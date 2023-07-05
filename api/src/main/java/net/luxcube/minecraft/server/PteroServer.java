@@ -22,6 +22,7 @@ public interface PteroServer {
 
     /**
      * Retrieve the identifier of the server.
+     *
      * @return The identifier of the server.
      */
     @NotNull
@@ -29,6 +30,7 @@ public interface PteroServer {
 
     /**
      * Retrieve the internal id of the server.
+     *
      * @return The internal id of the server.
      */
     @NotNull
@@ -36,6 +38,7 @@ public interface PteroServer {
 
     /**
      * Retrieve the name of the server.
+     *
      * @return The name of the server.
      */
     @NotNull
@@ -43,6 +46,7 @@ public interface PteroServer {
 
     /**
      * Retrieve the UUID of the server.
+     *
      * @return The UUID of the server.
      */
     @NotNull
@@ -50,6 +54,7 @@ public interface PteroServer {
 
     /**
      * Retrieve the full address of the server.
+     *
      * @return The full address of the server.
      */
     @NotNull
@@ -57,6 +62,7 @@ public interface PteroServer {
 
     /**
      * Retrieve the name of the node.
+     *
      * @return The name of the node.
      */
     @NotNull
@@ -64,6 +70,7 @@ public interface PteroServer {
 
     /**
      * Retrieve the manager of the server
+     *
      * @return The manager of the server.
      */
     @NotNull
@@ -71,6 +78,7 @@ public interface PteroServer {
 
     /**
      * Retrieve the status of the server.
+     *
      * @return A future of the completable status.
      */
     @NotNull
@@ -78,12 +86,14 @@ public interface PteroServer {
 
     /**
      * Retrieve the usage of the server.
+     *
      * @return A future of the completable usage.
      */
     CompletableFuture<ServerUsage> getUsage();
 
     /**
      * Change the name of the server.
+     *
      * @param name The new name of the server.
      * @return A future of the completable server.
      */
@@ -91,6 +101,7 @@ public interface PteroServer {
 
     /**
      * Allow the user to change the state of the server.
+     *
      * @param pteroUser The user that will change the state of the server.
      * @return A future of the completable state.
      */
@@ -98,6 +109,7 @@ public interface PteroServer {
 
     /**
      * Deny the user to change the state of the server.
+     *
      * @param pteroUser The user that will change the state of the server.
      * @return A future of the completable state.
      */
@@ -105,12 +117,14 @@ public interface PteroServer {
 
     /**
      * Execute the start command of the server.
+     *
      * @return A future of the completable server.
      */
     CompletableFuture<Void> start();
 
     /**
      * Check if user can handle/watch the server.
+     *
      * @param pteroUser The user that will check the state of the server.
      * @return A future of the completable state.
      */
@@ -118,6 +132,7 @@ public interface PteroServer {
 
     /**
      * Execute the stop command of the server.
+     *
      * @return A future of the completable server.
      */
     CompletableFuture<Void> stop();
