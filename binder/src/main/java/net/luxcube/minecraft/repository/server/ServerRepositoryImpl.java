@@ -1,11 +1,7 @@
 package net.luxcube.minecraft.repository.server;
 
-import com.mattmalec.pterodactyl4j.ClientType;
 import com.mattmalec.pterodactyl4j.application.entities.ApplicationServer;
-import com.mattmalec.pterodactyl4j.client.entities.ClientAllocation;
-import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
-import com.mattmalec.pterodactyl4j.requests.PaginationAction;
 import net.luxcube.minecraft.exception.ServerDoesntExistException;
 import net.luxcube.minecraft.logger.PteroLogger;
 import net.luxcube.minecraft.server.PteroServer;
@@ -17,7 +13,6 @@ import net.luxcube.minecraft.vo.PteroBridgeVO;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -150,79 +145,6 @@ public class ServerRepositoryImpl implements ServerRepository {
                         server.getUUID()
                     );
                 }).collect(Collectors.toList());
-        });
-    }
-
-    @Override
-    public CompletableFuture<PteroServer> retrieveServerByDomain(@NotNull String domain) {
-        PteroLogger.debug("Retrieving server by domain: %s", domain);
-
-        return CompletableFuture.supplyAsync(() -> {
-            List<ClientServer> clientServers = new Vector<>();
-
-            int currentPage = 1,
-                maxPage = 1;
-
-            PaginationAction<ClientServer> pteroAction = bridge.getClient()
-                .retrieveServers(ClientType.OWNER);
-            do {
-                List<ClientServer> servers = pteroAction.execute();
-
-                if (pteroAction.getTotalPages() != maxPage) {
-                    maxPage = pteroAction.getTotalPages();
-                }
-
-                clientServers.addAll(servers);
-
-                if (currentPage < maxPage) {
-                    currentPage++;
-                } else {
-                    break;
-                }
-            } while (currentPage <= maxPage);
-
-            return clientServers;
-        }).thenApply(clientServers -> {
-            ClientServer clientServer = null;
-            for (ClientServer targetServer : clientServers) {
-                ClientAllocation clientAllocation = targetServer.getPrimaryAllocation();
-
-                if (clientAllocation == null) {
-                    continue;
-                }
-
-                String note;
-                try {
-                    note = clientAllocation.getNotes();
-                } catch (Exception exception) {
-                    continue;
-                }
-
-                if (note == null || note.isEmpty()) {
-                    continue;
-                }
-
-                if (note.equals(domain)) {
-                    clientServer = targetServer;
-                    break;
-                }
-            }
-
-            if (clientServer == null) {
-                throw new ServerDoesntExistException(domain);
-            }
-
-            Pair<String, String> addressAndNode = Servers.getAddressAndNode(clientServer);
-
-            return new PteroServerImpl(
-                bridge,
-                clientServer.getIdentifier(),
-                clientServer.getInternalId(),
-                addressAndNode.first(),
-                addressAndNode.second(),
-                clientServer.getName(),
-                clientServer.getUUID()
-            );
         });
     }
 }

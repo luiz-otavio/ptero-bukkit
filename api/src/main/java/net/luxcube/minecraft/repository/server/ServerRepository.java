@@ -54,12 +54,4 @@ public interface ServerRepository {
      */
     CompletableFuture<List<PteroServer>> retrieveServersByPage(int page, int size);
 
-    /**
-     * Looks up for a server based on the domain.
-     *
-     * @param domain The domain of the server.
-     * @return A future of the completable server.
-     */
-    CompletableFuture<PteroServer> retrieveServerByDomain(@NotNull String domain);
-
 }

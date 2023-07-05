@@ -44,11 +44,4 @@ public interface ServerManager {
      */
     CompletableFuture<Void> bulkResource(int cpu, int ram, int disk);
 
-    /**
-     * Apply the domain to the server
-     *
-     * @param domain The domain to be applied
-     * @return A future of the completable boolean.
-     */
-    CompletableFuture<Boolean> setDomain(@NotNull String domain);
 }

@@ -3,8 +3,6 @@ package net.luxcube.minecraft.server.manager;
 import com.mattmalec.pterodactyl4j.DataType;
 import com.mattmalec.pterodactyl4j.application.entities.ApplicationServer;
 import com.mattmalec.pterodactyl4j.application.managers.ServerBuildManager;
-import com.mattmalec.pterodactyl4j.client.entities.ClientAllocation;
-import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
 import com.mattmalec.pterodactyl4j.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import net.luxcube.minecraft.exception.ServerDoesntExistException;
@@ -13,7 +11,6 @@ import net.luxcube.minecraft.manager.ServerManager;
 import net.luxcube.minecraft.server.PteroServer;
 import net.luxcube.minecraft.util.Try;
 import net.luxcube.minecraft.vo.PteroBridgeVO;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -130,36 +127,6 @@ public class ServerManagerImpl implements ServerManager {
             buildManager.setDisk(disk, DataType.MB);
 
             buildManager.execute();
-        });
-    }
-
-    @Override
-    public CompletableFuture<Boolean> setDomain(@NotNull String domain) {
-        PteroLogger.debug("Setting domain to %s", domain);
-
-        return CompletableFuture.supplyAsync(() -> {
-            @NotNull Try<ClientServer> catching = Try.catching(() -> {
-                return bridge.getClient()
-                    .retrieveServerByIdentifier(pteroServer.getIdentifier())
-                    .execute();
-            });
-
-            catching.catching(NotFoundException.class, e -> {
-                throw new ServerDoesntExistException(pteroServer.getIdentifier());
-            });
-
-            return catching.unwrap();
-        }, bridge.getWorker()).thenApply(application -> {
-            ClientAllocation clientAllocation = application.getPrimaryAllocation();
-
-            if (clientAllocation == null) {
-                return false;
-            }
-
-            clientAllocation.setNote(domain)
-                .execute();
-
-            return true;
         });
     }
 }
