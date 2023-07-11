@@ -192,15 +192,17 @@ public class PteroFactoryImpl implements PteroFactory {
             }
 
             String fromShort = Users.fromShort(uuid);
-            ;
             Try<ApplicationUser> catching = Try.catching(() -> {
                 return bridge.getApplication()
                     .getUserManager()
                     .createUser()
                     .setPassword(password)
                     .setEmail(email == null ? String.format("%s@%s", username, "luxcube.net") : email)
-                    .setUserName(username)
-                    .setFirstName(fromShort)
+                    .setUserName(
+                        LETTERS_AND_NUMBERS.matcher(username)
+                            .replaceAll("")
+                            .toLowerCase()
+                    ).setFirstName(fromShort)
                     .setLastName("'s Account")
                     .timeout(10, TimeUnit.SECONDS)
                     .execute(true);
