@@ -86,7 +86,5 @@ public class ServerListener extends ClientSocketListenerAdapter {
 
         clientServer.getWebSocketBuilder()
             .removeEventListeners(this);
-
-        System.out.println("clientServer = " + clientServer);
     }
 }
