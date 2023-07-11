@@ -215,7 +215,7 @@ public class PteroFactoryImpl implements PteroFactory {
             return new PteroUserImpl(
                 bridge,
                 applicationUser.getId(),
-                username,
+                applicationUser.getUserName(),
                 applicationUser.getEmail(),
                 uuid,
                 password
